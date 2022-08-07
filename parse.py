@@ -26,7 +26,7 @@ class Parser:
 		while self.lexer.peak().type == 'AT':
 			segments.append(self.parse_segment())
 
-		return segments
+		return ast.File(segments)
 
 	def parse_segment(self):
 		self.lexer.assert_token('AT')

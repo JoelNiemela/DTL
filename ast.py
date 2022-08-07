@@ -1,3 +1,10 @@
+class File:
+	def __init__(self, segments):
+		self.segments = segments
+
+	def __repr__(self):
+		return 'File(' + str(self.segments) + ')'
+
 class Segment:
 	def __init__(self, name, timelist):
 		self.name = name
