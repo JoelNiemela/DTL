@@ -78,8 +78,6 @@ class Lexer:
 		for _ in range(prev_line_indent):
 			self.tokens.append(Token('END'))
 
-		print([t.type for t in self.tokens])
-
 	def peak(self):
 		if len(self.tokens) > 0:
 			return self.tokens[0]
@@ -87,7 +85,6 @@ class Lexer:
 			return Token('EOF')
 
 	def pop(self):
-		print(self.peak().type)
 		if len(self.tokens) > 0:
 			return self.tokens.popleft()
 		else:
