@@ -9,29 +9,21 @@ class File:
 		return ''.join([segment.format() for segment in self.segments])
 
 class Segment:
-	def __init__(self, name, timelist):
-		self.name = name
-		self.timelist = timelist
-
-	def __repr__(self):
-		return 'Segment(' + self.name + ', ' + str(self.timelist) + ')'
-
-	def format(self):
-		str = f'@{self.name}\n'
-		return str + ''.join([time.format() for time in self.timelist])
-
-class Time:
-	def __init__(self, time, description, attributes):
+	def __init__(self, time, description, segments, attributes):
 		self.time = time
 		self.description = description
+		self.segments = segments
 		self.attributes = attributes
 
 	def __repr__(self):
-		return 'Time(' + self.time + ', ' + self.description + ', ' + str(self.attributes) + ')'
+		return 'Segment(' + str(self.time) + ', ' + (self.description or '') + ', ' + str(self.segments) + ', ' + str(self.attributes) + ')'
 
-	def format(self):
-		str = f'\t@{self.time} [{self.description}]\n'
-		return str + ''.join([attr.format() for attr in self.attributes])
+	def format(self, tab=0):
+		str = '\t' * tab
+		str += f'@{" ".join(self.time)} {f"[{self.description}]" if self.description != None else ""}\n'
+		str += ''.join([attr.format(tab+1) for attr in self.attributes])
+		str += ''.join([time.format(tab+1) for time in self.segments])
+		return str
 
 class Cmd:
 	def __init__(self, command, description, options):

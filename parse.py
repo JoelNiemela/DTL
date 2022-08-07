@@ -8,7 +8,11 @@ class Parser:
 	def parse(self, src):
 		self.lexer.tokenize(src)
 
-		return self.parse_segments()
+		segments = []
+		while self.lexer.peak().type == 'AT':
+			segments.append(self.parse_segment())
+
+		return ast.File(segments)
 
 	def parse_block(self, fn):
 		self.lexer.assert_token('OPEN')
@@ -22,42 +26,36 @@ class Parser:
 		return ln
 
 	def parse_segments(self):
-		segments = []
-		while self.lexer.peak().type == 'AT':
-			segments.append(self.parse_segment())
-
-		return ast.File(segments)
+		return self.parse_block(self.parse_segment)
 
 	def parse_segment(self):
-		self.lexer.assert_token('AT')
-		name = self.lexer.assert_token('NAME')
-		self.lexer.assert_token('NL')
-
-		if self.lexer.peak().type == 'OPEN':
-			timelist = self.parse_timelist()
-		else:
-			timelist = [self.parse_time()]
-
-		return ast.Segment(name.value, timelist)
+		match self.lexer.peak().type:
+			case 'AT':
+				return self.parse_time()
+			case _:
+				return self.parse_attr()
 
 	def parse_timelist(self):
 		return self.parse_block(self.parse_time)
 
 	def parse_time(self):
 		self.lexer.assert_token('AT')
+		time = [self.lexer.assert_token(['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME'])]
+		while self.lexer.peak().type in ['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME']:
+			time.append(self.lexer.pop())
 
-		time = self.lexer.assert_token('TIME')
-
-		desc = self.lexer.assert_token('DESC')
+		if self.lexer.peak().type == 'DESC':
+			desc = self.lexer.assert_token('DESC').value
+		else:
+			desc = None
 
 		self.lexer.assert_token('NL')
 
+		segments = []
 		if self.lexer.peak().type == 'OPEN':
-			attr = self.parse_attrs()
-		else:
-			attr = []
+			segments = self.parse_segments()
 
-		return ast.Time(time.value, desc.value, attr)
+		return ast.Segment([t.value for t in time], desc, segments, [])
 
 	def parse_attrs(self):
 		return self.parse_block(self.parse_attr)

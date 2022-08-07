@@ -22,8 +22,11 @@ if __name__ == "__main__":
 		file_path = args[0]
 
 		with open(file_path, 'r') as file:
-			parser = Parser()
+			parser = Parser(debug=True)
 			print(parser.parse(file.read()))
+
+			file.seek(0)
+			print(parser.parse(file.read()).format())
 
 	if cmd == 'format':
 		if len(args) < 1:

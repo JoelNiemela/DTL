@@ -15,8 +15,11 @@ class Lexer:
 	def tokenize(self, src):
 		types = {
 			'AT'       : r'@',
+			'YEAR'     : r'\d{4}',
+			'MONTH'    : r'January|February|March|April|May|June|July|August|September|October|November|December',
+			'DATE'     : r'([2-3]?1st|2?2nd|[1-2]?[3-9]th|30th|11th|12th)',
+			'DAY'      : r'Mon(day)|Tue(sday)|Wed(esday)|Thu(rsday)|Fri(day)|Sat(urday)|Sun(day)',
 			'TIME'     : r'\d?\d:\d\d(-\d?\d:\d\d)?',
-			'NAME'     : r'[A-Za-z]+',
 			'DURATION' : r'([0-9]+\s(seconds|minutes|hours))|(second|minute|hour)',
 			'CMD'      : r'![A-Za-z]+',
 			'OPTION'   : r'#[A-Za-z]+',
@@ -98,10 +101,13 @@ class Lexer:
 			return Token('EOF')
 
 	def assert_token(self, tok_t):
+		if not isinstance(tok_t, list):
+			tok_t = [tok_t]
+
 		token = self.peak()
 
-		if token.type != tok_t:
-			print(f'Error: expected {tok_t}, found {token.type}')
+		if not token.type in tok_t:
+			print(f'Error: expected {", ".join(tok_t)}, found {token.type}')
 			return None
 		else:
 			return self.pop()
