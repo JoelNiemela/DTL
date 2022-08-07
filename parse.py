@@ -2,6 +2,11 @@ import re
 
 from collections import deque
 
+class Token:
+	def __init__(self, tok_type, value=None):
+		self.type = tok_type
+		self.value = value
+
 class Lexer:
 	def __init__(self):
 		self.tokens = deque()
@@ -11,6 +16,8 @@ class Lexer:
 			'AT'    : r'@',
 			'TIME'  : r'\d?\d:\d\d',
 			'NAME'  : r'[A-Za-z]+',
+			'CMD'   : r'![A-Za-z]+',
+			'DESC'  : r'\[(?P<val>[^\]]*)\]',
 			'COLON' : r':',
 			'NL'    : r'\n+',
 			'TAB'   : r'\t',
@@ -35,21 +42,20 @@ class Lexer:
 				match = pattern.match(src[pos:])
 				if match:
 					token_type = tok_type
-					token_val = match.group(0)
-					pos += len(token_val)
+					if 'val' in match.groupdict():
+						token_val = match.group('val')
+					else:
+						token_val = match.group(0)
+					pos += len(match.group(0))
 					break
 
 			if at_line_start and token_type != 'TAB':
 				if line_indent > prev_line_indent:
 					for _ in range(line_indent-prev_line_indent):
-						self.tokens.append({
-							'tok_t' : 'OPEN',
-						})
+						self.tokens.append(Token('OPEN'))
 				elif line_indent < prev_line_indent:
 					for _ in range(prev_line_indent-line_indent):
-						self.tokens.append({
-							'tok_t' : 'END',
-						})
+						self.tokens.append(Token('END'))
 
 			match token_type:
 				case 'NL':
@@ -59,39 +65,35 @@ class Lexer:
 				case 'TAB':
 					if at_line_start:
 						line_indent += 1
+				case 'WS':
+					continue
 				case _:
 					at_line_start = False
-					self.tokens.append({
-						'tok_t' : token_type,
-						'value' : token_val,
-					})
+					self.tokens.append(Token(token_type, token_val))
 
 		for _ in range(prev_line_indent):
-			self.tokens.append({
-				'tok_t' : 'END',
-			})
+			self.tokens.append(Token('END'))
 
 	def peak(self):
 		if len(self.tokens) > 0:
 			return self.tokens[0]
 		else:
-			return {'tok_t' : 'ERROR'}
+			return Token('EOF')
 
 	def pop(self):
 		if len(self.tokens) > 0:
 			return self.tokens.popleft()
 		else:
-			return {'tok_t' : 'ERROR'}
+			return Token('EOF')
 
-	def assert_token(self, tok_t, token=None):
-		if token == None:
-			token = self.pop()
+	def assert_token(self, tok_t):
+		token = self.peak()
 
-		if token['tok_t'] != tok_t:
-			print(f'Error: expected "{tok_t}", found "{token["tok_t"]}"')
-			return False
+		if token.type != tok_t:
+			print(f'Error: expected "{tok_t}", found "{token.type}"')
+			return None
 		else:
-			return True
+			return self.pop()
 
 class Parser:
 	def __init__(self):
@@ -100,25 +102,31 @@ class Parser:
 	def parse(self, src):
 		self.lexer.tokenize(src)
 
-		return self.parse_segment()
+		return self.parse_segments()
+
+	def parse_segments(self):
+		segments = []
+		while self.lexer.peak().type == 'AT':
+			segments.append(self.parse_segment())
+
+		return segments
 
 	def parse_segment(self):
 		self.lexer.assert_token('AT')
-		name = self.lexer.pop()
-		self.lexer.assert_token('NAME', name)
+		name = self.lexer.assert_token('NAME')
 
-		if self.lexer.peak()['tok_t'] == 'OPEN':
+		if self.lexer.peak().type == 'OPEN':
 			timelist = self.parse_timelist()
 		else:
 			timelist = [self.parse_time()]
 
-		return timelist
+		return (name.value, timelist)
 
 	def parse_timelist(self):
 		self.lexer.assert_token('OPEN')
 
 		timelist = []
-		while self.lexer.peak()['tok_t'] != 'END':
+		while self.lexer.peak().type != 'END':
 			timelist.append(self.parse_time())
 
 		self.lexer.assert_token('END')
@@ -128,8 +136,31 @@ class Parser:
 	def parse_time(self):
 		self.lexer.assert_token('AT')
 
-		time = self.lexer.pop()
-		self.lexer.assert_token('TIME', time)
+		time = self.lexer.assert_token('TIME')
 
-		return time['value']
+		desc = self.lexer.assert_token('DESC')
 
+		attr = self.parse_attr()
+
+		return (time.value, desc.value, attr)
+
+	def parse_attr(self):
+		if self.lexer.peak().type != 'OPEN':
+			return None
+
+		self.lexer.assert_token('OPEN')
+
+		cmds = []
+		while self.lexer.peak().type != 'END':
+			cmds.append(self.parse_cmd())
+
+		self.lexer.assert_token('END')
+
+		return cmds
+
+	def parse_cmd(self):
+		cmd = self.lexer.assert_token('CMD')
+
+		desc = self.lexer.assert_token('DESC')
+
+		return (cmd.value, desc.value)

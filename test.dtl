@@ -1,4 +1,8 @@
-@Monday
-	@12:00
-	@11:00
+@Sunday
+	@12:00 [Kattis]
+		!note [test]
+	@11:00 []
 
+@Monday
+	@12:00 []
+	@11:00 []
