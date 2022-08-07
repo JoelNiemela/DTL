@@ -1,8 +1,5 @@
 @Sunday
-	@12:00 [Kattis]
+	@12:00-13:00 [Kattis]
 		!note [test]
-	@11:00 []
-
-@Monday
-	@12:00 []
-	@11:00 []
+		!msg []
+			#every 5 seconds

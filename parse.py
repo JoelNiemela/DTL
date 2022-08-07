@@ -13,16 +13,18 @@ class Lexer:
 
 	def tokenize(self, src):
 		types = {
-			'AT'    : r'@',
-			'TIME'  : r'\d?\d:\d\d',
-			'NAME'  : r'[A-Za-z]+',
-			'CMD'   : r'![A-Za-z]+',
-			'DESC'  : r'\[(?P<val>[^\]]*)\]',
-			'COLON' : r':',
-			'NL'    : r'\n+',
-			'TAB'   : r'\t',
-			'WS'    : r'\s',
-			'ERROR' : r'.',
+			'AT'       : r'@',
+			'TIME'     : r'\d?\d:\d\d(-\d?\d:\d\d)?',
+			'NAME'     : r'[A-Za-z]+',
+			'DURATION' : r'([0-9]+\s(seconds|minutes|hours))|(second|minute|hour)',
+			'CMD'      : r'![A-Za-z]+',
+			'OPTION'   : r'#[A-Za-z]+',
+			'DESC'     : r'\[(?P<val>[^\]]*)\]',
+			'COLON'    : r':',
+			'NL'       : r'\n+',
+			'TAB'      : r'\t',
+			'WS'       : r'\s',
+			'ERROR'    : r'.',
 		}
 
 		for tok_type, pattern in types.items():
@@ -62,6 +64,8 @@ class Lexer:
 					at_line_start = True
 					prev_line_indent = line_indent
 					line_indent = 0
+
+					self.tokens.append(Token('NL'))
 				case 'TAB':
 					if at_line_start:
 						line_indent += 1
@@ -74,6 +78,8 @@ class Lexer:
 		for _ in range(prev_line_indent):
 			self.tokens.append(Token('END'))
 
+		print([t.type for t in self.tokens])
+
 	def peak(self):
 		if len(self.tokens) > 0:
 			return self.tokens[0]
@@ -81,6 +87,7 @@ class Lexer:
 			return Token('EOF')
 
 	def pop(self):
+		print(self.peak().type)
 		if len(self.tokens) > 0:
 			return self.tokens.popleft()
 		else:
@@ -90,7 +97,7 @@ class Lexer:
 		token = self.peak()
 
 		if token.type != tok_t:
-			print(f'Error: expected "{tok_t}", found "{token.type}"')
+			print(f'Error: expected {tok_t}, found {token.type}')
 			return None
 		else:
 			return self.pop()
@@ -104,6 +111,17 @@ class Parser:
 
 		return self.parse_segments()
 
+	def parse_block(self, fn):
+		self.lexer.assert_token('OPEN')
+
+		ln = []
+		while self.lexer.peak().type != 'END':
+			ln.append(fn())
+
+		self.lexer.assert_token('END')
+
+		return ln
+
 	def parse_segments(self):
 		segments = []
 		while self.lexer.peak().type == 'AT':
@@ -114,6 +132,7 @@ class Parser:
 	def parse_segment(self):
 		self.lexer.assert_token('AT')
 		name = self.lexer.assert_token('NAME')
+		self.lexer.assert_token('NL')
 
 		if self.lexer.peak().type == 'OPEN':
 			timelist = self.parse_timelist()
@@ -123,15 +142,7 @@ class Parser:
 		return (name.value, timelist)
 
 	def parse_timelist(self):
-		self.lexer.assert_token('OPEN')
-
-		timelist = []
-		while self.lexer.peak().type != 'END':
-			timelist.append(self.parse_time())
-
-		self.lexer.assert_token('END')
-
-		return timelist
+		return self.parse_block(self.parse_time)
 
 	def parse_time(self):
 		self.lexer.assert_token('AT')
@@ -140,27 +151,54 @@ class Parser:
 
 		desc = self.lexer.assert_token('DESC')
 
-		attr = self.parse_attr()
+		self.lexer.assert_token('NL')
+
+		if self.lexer.peak().type == 'OPEN':
+			attr = self.parse_attrs()
+		else:
+			attr = None
 
 		return (time.value, desc.value, attr)
 
+	def parse_attrs(self):
+		return self.parse_block(self.parse_attr)
+
 	def parse_attr(self):
-		if self.lexer.peak().type != 'OPEN':
-			return None
-
-		self.lexer.assert_token('OPEN')
-
-		cmds = []
-		while self.lexer.peak().type != 'END':
-			cmds.append(self.parse_cmd())
-
-		self.lexer.assert_token('END')
-
-		return cmds
+		match self.lexer.peak().type:
+			case 'CMD':
+				return self.parse_cmd()
+			case err:
+				print(f'Error: expected (CMD, AT), found {err}')
+				return None
 
 	def parse_cmd(self):
 		cmd = self.lexer.assert_token('CMD')
 
 		desc = self.lexer.assert_token('DESC')
 
-		return (cmd.value, desc.value)
+		self.lexer.assert_token('NL')
+
+		if self.lexer.peak().type == 'OPEN':
+			options = self.parse_options()
+		else:
+			options = None
+
+		return (cmd.value, desc.value, options)
+
+	def parse_options(self):
+		return self.parse_block(self.parse_option)
+
+	def parse_option(self):
+		option = self.lexer.assert_token('OPTION')
+
+		match self.lexer.peak().type:
+			case 'DURATION':
+				value = self.lexer.assert_token('DURATION').value
+			case 'DESC':
+				value = self.lexer.assert_token('DESC').value
+			case err:
+				print(f'Error: expected (DURATION, DESC), found {err}')
+
+		self.lexer.assert_token('NL')
+
+		return (option.value, value)
