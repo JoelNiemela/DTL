@@ -2,8 +2,8 @@ from tokenize import Lexer, Token
 import ast
 
 class Parser:
-	def __init__(self):
-		self.lexer = Lexer()
+	def __init__(self, debug=False):
+		self.lexer = Lexer(debug=debug)
 
 	def parse(self, src):
 		self.lexer.tokenize(src)

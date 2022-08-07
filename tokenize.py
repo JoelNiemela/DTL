@@ -8,8 +8,9 @@ class Token:
 		self.value = value
 
 class Lexer:
-	def __init__(self):
+	def __init__(self, debug=False):
 		self.tokens = deque()
+		self.debug = debug
 
 	def tokenize(self, src):
 		types = {
@@ -78,6 +79,9 @@ class Lexer:
 		for _ in range(prev_line_indent):
 			self.tokens.append(Token('END'))
 
+		if self.debug:
+			print(' '.join([t.type for t in self.tokens]))
+
 	def peak(self):
 		if len(self.tokens) > 0:
 			return self.tokens[0]
@@ -85,6 +89,9 @@ class Lexer:
 			return Token('EOF')
 
 	def pop(self):
+		if self.debug:
+			print(self.peak().type)
+
 		if len(self.tokens) > 0:
 			return self.tokens.popleft()
 		else:
