@@ -21,7 +21,35 @@ if __name__ == "__main__":
 
 		file_path = args[0]
 
-		parser = Parser()
 		with open(file_path, 'r') as file:
+			parser = Parser()
 			print(parser.parse(file.read()))
 
+	if cmd == 'format':
+		if len(args) < 1:
+			print('Error: expected an argument')
+			exit(1)
+
+		file_path = args[0]
+
+		with open(file_path, 'r+') as file:
+			parser = Parser()
+			ast = parser.parse(file.read())
+
+			file.seek(0)
+			file.write(ast.format())
+
+	if cmd == 'add':
+		if len(args) < 2:
+			print('Error: expected an argument')
+			exit(1)
+
+		description = args[0]
+		file_path   = args[1]
+
+		with open(file_path, 'r+') as file:
+			parser = Parser()
+			ast = parser.parse(file.read())
+
+			file.seek(0)
+			file.write(ast.format())

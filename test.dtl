@@ -1,5 +1,5 @@
-@Sunday
-	@12:00-13:00 [Kattis]
-		!note [test]
-		!msg []
-			#every 5 seconds
+@August 1st
+		@12:00-13:00 [Kattis]
+			!note [test]
+			!msg []
+				#every 5 seconds

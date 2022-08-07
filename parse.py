@@ -55,7 +55,7 @@ class Parser:
 		if self.lexer.peak().type == 'OPEN':
 			attr = self.parse_attrs()
 		else:
-			attr = None
+			attr = []
 
 		return ast.Time(time.value, desc.value, attr)
 
@@ -80,7 +80,7 @@ class Parser:
 		if self.lexer.peak().type == 'OPEN':
 			options = self.parse_options()
 		else:
-			options = None
+			options = []
 
 		return ast.Cmd(cmd.value, desc.value, options)
 
