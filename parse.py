@@ -1,4 +1,5 @@
 from tokenize import Lexer, Token
+import ast
 
 class Parser:
 	def __init__(self):
@@ -37,7 +38,7 @@ class Parser:
 		else:
 			timelist = [self.parse_time()]
 
-		return (name.value, timelist)
+		return ast.Segment(name.value, timelist)
 
 	def parse_timelist(self):
 		return self.parse_block(self.parse_time)
@@ -56,7 +57,7 @@ class Parser:
 		else:
 			attr = None
 
-		return (time.value, desc.value, attr)
+		return ast.Time(time.value, desc.value, attr)
 
 	def parse_attrs(self):
 		return self.parse_block(self.parse_attr)
@@ -81,7 +82,7 @@ class Parser:
 		else:
 			options = None
 
-		return (cmd.value, desc.value, options)
+		return ast.Cmd(cmd.value, desc.value, options)
 
 	def parse_options(self):
 		return self.parse_block(self.parse_option)
@@ -99,4 +100,4 @@ class Parser:
 
 		self.lexer.assert_token('NL')
 
-		return (option.value, value)
+		return ast.Option(option.value, value)
