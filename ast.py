@@ -34,7 +34,9 @@ class Segment:
 
 	def validate(self, scope_time):
 		time = scope_time + self.time
-		Time.validate_time(time)
+
+		if not Time.validate_time(time):
+			print(f'Error: time in segment(s) not in order.\n"{", ".join([t.type + " (" + t.value + ")" for t in time])}"')
 
 		self.full_time = time
 
@@ -78,7 +80,7 @@ class Cmd:
 		return str
 
 	def validate(self, time):
-		return True
+		return None
 
 class Option:
 	def __init__(self, name, value):
