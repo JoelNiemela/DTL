@@ -34,9 +34,11 @@ class Cmd:
 	def __repr__(self):
 		return 'Cmd(' + self.command + ', ' + self.description + ', ' + str(self.options) + ')'
 
-	def format(self):
-		str = f'\t\t{self.command} [{self.description}]\n'
-		return str + ''.join([option.format() for option in self.options])
+	def format(self, tab=0):
+		str = '\t' * tab
+		str += f'{self.command} [{self.description}]\n'
+		str += ''.join([option.format() for option in self.options])
+		return str
 
 class Option:
 	def __init__(self, name, value):
@@ -46,5 +48,7 @@ class Option:
 	def __repr__(self):
 		return 'Option(' + self.name + ', ' + self.value + ')'
 
-	def format(self):
-		return f'\t\t\t{self.name} {self.value}\n'
+	def format(self, tab=0):
+		str = '\t' * tab
+		str += f'\t\t\t{self.name} {self.value}\n'
+		return str
