@@ -49,14 +49,24 @@ if __name__ == "__main__":
 			print('Error: expected an argument')
 			exit(1)
 
-		description = args[0]
-		file_path   = args[1]
+		if args[0] == 'ongoing':
+			ongoing = True
+			description = args[1]
+			file_path   = args[2]
+		elif args[0] == 'static':
+			ongoing = False
+			description = args[1]
+			file_path   = args[2]
+		else:
+			ongoing = None
+			description = args[0]
+			file_path   = args[1]
 
 		parser = Parser(debug=True)
 		with open(file_path, 'r') as file:
 			tree = parser.parse(file.read())
 
-		print(''.join([f.format(full_time = True) for f in tree.find(description)]))
+		print(''.join([f.format(full_time = True) for f in tree.find(description, ongoing=ongoing)]))
 
 	if cmd == 'add':
 		if len(args) < 2:
@@ -106,6 +116,17 @@ if __name__ == "__main__":
 		parser = Parser()
 		with open(file_path, 'r') as file:
 			tree = parser.parse(file.read())
+
+		already_ongoing = tree.find(description, ongoing = True)
+		if len(already_ongoing) > 0:
+			if len(already_ongoing) == 1:
+				print(f'There\'s already an ongoing entry with the name "{description}":')
+			else:
+				print(f'There are already ongoing entries with the name "{description}":')
+
+			print()
+			print(''.join(['\t' + f.format(full_time = True) for f in already_ongoing]))
+			exit(0)
 
 		now = datetime.now()
 
