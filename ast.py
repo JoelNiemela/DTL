@@ -50,5 +50,5 @@ class Option:
 
 	def format(self, tab=0):
 		str = '\t' * tab
-		str += f'\t\t\t{self.name} {self.value}\n'
+		str += f'{self.name} {self.value}\n'
 		return str
