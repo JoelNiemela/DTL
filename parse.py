@@ -85,6 +85,8 @@ class Parser:
 				value = self.lexer.assert_token('DURATION').value
 			case 'DESC':
 				value = self.lexer.assert_token('DESC').value
+			case 'NL':
+				value = ''
 			case err:
 				print(f'Error: expected (DURATION, DESC), found {err}')
 
