@@ -17,7 +17,7 @@ class Lexer:
 			'AT'       : r'@',
 			'YEAR'     : r'\d{4}',
 			'MONTH'    : r'January|February|March|April|May|June|July|August|September|October|November|December',
-			'DATE'     : r'([2-3]?1st|2?2nd|[1-2]?[3-9]th|30th|11th|12th)',
+			'DATE'     : r'([2-3]?1st|2?2nd|2?3rd|[1-2]?[3-9]th|30th|11th|12th|13th)',
 			'DAY'      : r'Mon(day)|Tue(sday)|Wed(esday)|Thu(rsday)|Fri(day)|Sat(urday)|Sun(day)',
 			'TIME'     : r'\d?\d:\d\d(-\d?\d:\d\d)?',
 			'DURATION' : r'([0-9]+\s(seconds|minutes|hours))|(second|minute|hour)',

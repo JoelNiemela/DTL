@@ -3,6 +3,19 @@ class File:
 		self.header_time = header_time
 		self.segments = segments
 
+	def create_entry(self, time, description):
+		sub_time = Time.remove_prefix(self.header_time, time)
+
+		if sub_time == None or sub_time == []:
+			return False
+
+		for segment in self.segments:
+			if segment.create_entry(sub_time, description):
+				return True
+
+		print('Couldn\'t find definition for', sub_time)
+		return False
+
 	def __repr__(self):
 		return 'File(' + str(self.header_time) + ', ' + str(self.segments) + ')'
 
@@ -23,6 +36,20 @@ class Segment:
 		self.description = description
 		self.segments = segments
 		self.attributes = attributes
+
+	def create_entry(self, time, description):
+		sub_time = Time.remove_prefix(self.time, time)
+
+		if sub_time == None or sub_time == []:
+			return False
+
+		for segment in self.segments:
+			if segment.create_entry(sub_time, description):
+				return True
+
+		self.segments.append(Segment(sub_time, description, [], []))
+		print('Couldn\'t find definition for', sub_time)
+		return True
 
 	def __repr__(self):
 		return 'Segment(' + str(self.time) + ', ' + (self.description or '') + ', ' + str(self.segments) + ', ' + str(self.attributes) + ')'
@@ -59,9 +86,22 @@ class Time:
 			print('Error: segment time contains both weekday and date."')
 			print(f'{", ".join([t.type + " (" + t.value + ")" for t in time])}"')
 
+	@classmethod
+	def remove_prefix(self, prefix, time):
+		if len(prefix) > len(time):
+			return False
+
+		if not all(time[i] == prefix[i] for i in range(len(prefix))):
+			return False
+
+		return list(time)[len(prefix):]
+
 	def __init__(self, time_type, value):
 		self.type = time_type
 		self.value = value
+
+	def __eq__(self, other):
+		return self.type == other.type and self.value == other.value
 
 	def index(self):
 		time_order = ['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME']
@@ -79,6 +119,9 @@ class Cmd:
 		self.command = command
 		self.description = description
 		self.options = options
+
+	def create_entry(self, time, description):
+		return False
 
 	def __repr__(self):
 		return 'Cmd(' + self.command + ', ' + self.description + ', ' + str(self.options) + ')'

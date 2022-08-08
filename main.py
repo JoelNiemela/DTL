@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 import sys
+from datetime import datetime
 
 from parse import Parser
+import ast
 
 if __name__ == "__main__":
 	flags    = [flag for flag in sys.argv[1:] if flag[0] == '-']
@@ -50,9 +52,31 @@ if __name__ == "__main__":
 		description = args[0]
 		file_path   = args[1]
 
-		with open(file_path, 'r+') as file:
-			parser = Parser()
-			ast = parser.parse(file.read())
+		parser = Parser()
+		with open(file_path, 'r') as file:
+			tree = parser.parse(file.read())
 
-			file.seek(0)
-			file.write(ast.format())
+		now = datetime.now()
+
+		year = now.strftime('%Y')
+		month = now.strftime('%B')
+
+		date = int(now.strftime('%d'))
+		if 4 <= date <= 20 or 24 <= date <= 30:
+			date = str(date) + "th"
+		else:
+			date = str(date) + ["st", "nd", "rd"][date % 10 - 1]
+
+		time = now.strftime('%H:%M')
+
+		tree.create_entry([
+			ast.Time('YEAR', year),
+			ast.Time('MONTH', month),
+			ast.Time('DATE', date),
+			ast.Time('TIME', time)
+		], description)
+
+		print(tree.format())
+
+		with open(file_path, 'w') as file:
+			file.write(tree.format())
