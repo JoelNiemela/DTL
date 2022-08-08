@@ -34,9 +34,7 @@ class Segment:
 
 	def validate(self, scope_time):
 		time = scope_time + self.time
-
-		if not Time.validate_time(time):
-			print(f'Error: time in segment(s) not in order.\n"{", ".join([t.type + " (" + t.value + ")" for t in time])}"')
+		Time.validate_time(time)
 
 		self.full_time = time
 
@@ -47,7 +45,14 @@ class Time:
 
 	@classmethod
 	def validate_time(cls, time):
-		return all(time[i].index() < time[i+1].index() for i in range(len(time)-1))
+		if not all([time[i].index() < time[i+1].index() for i in range(len(time)-1)]):
+			print('Error: segment time not in order.')
+			print(f'"{", ".join([t.type + " (" + t.value + ")" for t in time])}"')
+
+		types = [t.type for t in time]
+		if 'DAY' in types and 'DATE' in types:
+			print('Error: segment time contains both weekday and date."')
+			print(f'{", ".join([t.type + " (" + t.value + ")" for t in time])}"')
 
 	def __init__(self, time_type, value):
 		self.type = time_type
