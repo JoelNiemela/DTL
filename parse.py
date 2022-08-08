@@ -8,12 +8,23 @@ class Parser:
 	def parse(self, src):
 		self.lexer.tokenize(src)
 
+		header_time = []
+		if self.lexer.peak().type == 'FOR':
+			self.lexer.pop()
+
+			while self.lexer.peak().type != 'COLON':
+				time = self.lexer.assert_token(['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME'])
+				header_time.append(ast.Time(time.type, time.value))
+
+			self.lexer.assert_token('COLON')
+			self.lexer.assert_token('NL')
+
 		segments = []
 		while self.lexer.peak().type == 'AT':
 			segments.append(self.parse_segment())
 
 		tree = ast.File(segments)
-		tree.validate()
+		tree.validate(header_time)
 
 		return tree
 

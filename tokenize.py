@@ -24,6 +24,7 @@ class Lexer:
 			'CMD'      : r'![A-Za-z]+',
 			'OPTION'   : r'#[A-Za-z]+',
 			'DESC'     : r'\[(?P<val>[^\]]*)\]',
+			'FOR'      : r'for',
 			'COLON'    : r':',
 			'NL'       : r'\n+',
 			'TAB'      : r'\t',

@@ -8,9 +8,9 @@ class File:
 	def format(self):
 		return ''.join([segment.format() for segment in self.segments])
 
-	def validate(self):
+	def validate(self, header_time):
 		for segment in self.segments:
-			segment.validate([])
+			segment.validate(header_time)
 
 class Segment:
 	def __init__(self, time, description, segments, attributes):
