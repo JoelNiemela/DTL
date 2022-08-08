@@ -32,11 +32,11 @@ class Parser:
 		match self.lexer.peak().type:
 			case 'AT':
 				return self.parse_time()
-			case _:
-				return self.parse_attr()
-
-	def parse_timelist(self):
-		return self.parse_block(self.parse_time)
+			case 'CMD':
+				return self.parse_cmd()
+			case err:
+				print(f'Error: expected CMD, AT, found {err}')
+				return None
 
 	def parse_time(self):
 		self.lexer.assert_token('AT')
@@ -56,17 +56,6 @@ class Parser:
 			segments = self.parse_segments()
 
 		return ast.Segment([t.value for t in time], desc, segments, [])
-
-	def parse_attrs(self):
-		return self.parse_block(self.parse_attr)
-
-	def parse_attr(self):
-		match self.lexer.peak().type:
-			case 'CMD':
-				return self.parse_cmd()
-			case err:
-				print(f'Error: expected (CMD, AT), found {err}')
-				return None
 
 	def parse_cmd(self):
 		cmd = self.lexer.assert_token('CMD')
