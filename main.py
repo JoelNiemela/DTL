@@ -35,11 +35,11 @@ if __name__ == "__main__":
 
 		file_path = args[0]
 
-		with open(file_path, 'r+') as file:
-			parser = Parser()
+		parser = Parser()
+		with open(file_path, 'r') as file:
 			ast = parser.parse(file.read())
 
-			file.seek(0)
+		with open(file_path, 'w') as file:
 			file.write(ast.format())
 
 	if cmd == 'add':

@@ -29,9 +29,9 @@ class Segment:
 
 	def format(self, tab=0):
 		str = '\t' * tab
-		str += f'@{" ".join([t.format() for t in self.time])} '
+		str += f'@{" ".join([t.format() for t in self.time])}'
 		if self.description != None:
-			str += f'[{self.description}]'
+			str += f' [{self.description}]'
 		str += '\n'
 		str += ''.join([attr.format(tab+1) for attr in self.attributes])
 		str += ''.join([time.format(tab+1) for time in self.segments])
