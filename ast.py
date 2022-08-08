@@ -74,7 +74,7 @@ class Cmd:
 	def format(self, tab=0):
 		str = '\t' * tab
 		str += f'{self.command} [{self.description}]\n'
-		str += ''.join([option.format() for option in self.options])
+		str += ''.join([option.format(tab+1) for option in self.options])
 		return str
 
 	def validate(self, time):
