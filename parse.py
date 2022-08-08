@@ -12,7 +12,10 @@ class Parser:
 		while self.lexer.peak().type == 'AT':
 			segments.append(self.parse_segment())
 
-		return ast.File(segments)
+		tree = ast.File(segments)
+		tree.validate()
+
+		return tree
 
 	def parse_block(self, fn):
 		self.lexer.assert_token('OPEN')

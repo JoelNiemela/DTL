@@ -8,6 +8,10 @@ class File:
 	def format(self):
 		return ''.join([segment.format() for segment in self.segments])
 
+	def validate(self):
+		for segment in self.segments:
+			segment.validate([])
+
 class Segment:
 	def __init__(self, time, description, segments, attributes):
 		self.time = time
@@ -28,17 +32,35 @@ class Segment:
 		str += ''.join([time.format(tab+1) for time in self.segments])
 		return str
 
+	def validate(self, scope_time):
+		time = scope_time + self.time
+		Time.validate_time(time)
+
+		self.full_time = time
+
+		for segment in self.segments:
+			segment.validate(time)
+
 class Time:
+
+	@classmethod
+	def validate_time(cls, time):
+		return all(time[i].index() < time[i+1].index() for i in range(len(time)-1))
+
 	def __init__(self, time_type, value):
 		self.type = time_type
 		self.value = value
+
+	def index(self):
+		time_order = ['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME']
+		index = time_order.index(self.type)
+		return index
 
 	def __repr__(self):
 		return 'Time(' + self.type + ', ' + self.value + ')'
 
 	def format(self):
 		return self.value
-
 
 class Cmd:
 	def __init__(self, command, description, options):
@@ -54,6 +76,9 @@ class Cmd:
 		str += f'{self.command} [{self.description}]\n'
 		str += ''.join([option.format() for option in self.options])
 		return str
+
+	def validate(self, time):
+		return True
 
 class Option:
 	def __init__(self, name, value):

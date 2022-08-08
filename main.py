@@ -22,7 +22,7 @@ if __name__ == "__main__":
 		file_path = args[0]
 
 		with open(file_path, 'r') as file:
-			parser = Parser(debug=True)
+			parser = Parser(debug=False)
 			print(parser.parse(file.read()))
 
 			file.seek(0)
