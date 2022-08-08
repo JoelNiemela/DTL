@@ -26,6 +26,7 @@ class Lexer:
 			'DESC'     : r'\[(?P<val>[^\]]*)\]',
 			'FOR'      : r'for',
 			'COLON'    : r':',
+			'ONGOING'  : r'\.\.\.',
 			'NL'       : r'\n+',
 			'TAB'      : r'\t',
 			'WS'       : r'\s',

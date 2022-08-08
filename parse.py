@@ -58,6 +58,12 @@ class Parser:
 		while self.lexer.peak().type in ['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME']:
 			time.append(self.lexer.pop())
 
+		if self.lexer.peak().type == 'ONGOING':
+			self.lexer.assert_token('ONGOING')
+			ongoing = True
+		else:
+			ongoing = False
+
 		if self.lexer.peak().type == 'DESC':
 			desc = self.lexer.assert_token('DESC').value
 		else:
@@ -69,7 +75,7 @@ class Parser:
 		if self.lexer.peak().type == 'OPEN':
 			segments = self.parse_segments()
 
-		return ast.Segment([ast.Time(t.type, t.value) for t in time], desc, segments, [])
+		return ast.Segment([ast.Time(t.type, t.value) for t in time], desc, segments, [], ongoing)
 
 	def parse_cmd(self):
 		cmd = self.lexer.assert_token('CMD')

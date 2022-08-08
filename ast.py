@@ -3,18 +3,18 @@ class File:
 		self.header_time = header_time
 		self.segments = segments
 
-	def create_entry(self, time, description):
+	def create_entry(self, time, description, ongoing=False):
 		sub_time = Time.remove_prefix(self.header_time, time)
 
-		if sub_time == None or sub_time == []:
+		if sub_time == False or sub_time == []:
 			return False
 
 		for segment in self.segments:
-			if segment.create_entry(sub_time, description):
+			if segment.create_entry(sub_time, description, ongoing=ongoing):
 				return True
 
-		print('Couldn\'t find definition for', sub_time)
-		return False
+		self.segments.append(Segment(sub_time, description, [], [], ongoing))
+		return True
 
 	def __repr__(self):
 		return 'File(' + str(self.header_time) + ', ' + str(self.segments) + ')'
@@ -31,32 +31,34 @@ class File:
 			segment.validate(header_time)
 
 class Segment:
-	def __init__(self, time, description, segments, attributes):
+	def __init__(self, time, description, segments, attributes, ongoing):
 		self.time = time
 		self.description = description
 		self.segments = segments
 		self.attributes = attributes
+		self.ongoing = ongoing
 
-	def create_entry(self, time, description):
+	def create_entry(self, time, description, ongoing=False):
 		sub_time = Time.remove_prefix(self.time, time)
 
-		if sub_time == None or sub_time == []:
+		if sub_time == False or sub_time == []:
 			return False
 
 		for segment in self.segments:
-			if segment.create_entry(sub_time, description):
+			if segment.create_entry(sub_time, description, ongoing=ongoing):
 				return True
 
-		self.segments.append(Segment(sub_time, description, [], []))
-		print('Couldn\'t find definition for', sub_time)
+		self.segments.append(Segment(sub_time, description, [], [], ongoing))
 		return True
 
 	def __repr__(self):
-		return 'Segment(' + str(self.time) + ', ' + (self.description or '') + ', ' + str(self.segments) + ', ' + str(self.attributes) + ')'
+		return 'Segment(' + str(self.time) + ', ' + (self.description or '') + ', ' + str(self.segments) + ', ' + str(self.attributes) + ', ' + self.ongoing + ')'
 
 	def format(self, tab=0):
 		str = '\t' * tab
 		str += f'@{" ".join([t.format() for t in self.time])}'
+		if self.ongoing:
+			str += ' ...'
 		if self.description != None:
 			str += f' [{self.description}]'
 		str += '\n'

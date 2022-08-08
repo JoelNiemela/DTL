@@ -52,7 +52,7 @@ if __name__ == "__main__":
 		description = args[0]
 		file_path   = args[1]
 
-		parser = Parser()
+		parser = Parser(debug=True)
 		with open(file_path, 'r') as file:
 			tree = parser.parse(file.read())
 
@@ -75,6 +75,44 @@ if __name__ == "__main__":
 			ast.Time('DATE', date),
 			ast.Time('TIME', time)
 		], description)
+
+		print(tree.format())
+
+		with open(file_path, 'w') as file:
+			file.write(tree.format())
+
+	if cmd == 'begin':
+		if len(args) < 2:
+			print('Error: expected an argument')
+			exit(1)
+
+		description = args[0]
+		file_path   = args[1]
+
+		parser = Parser()
+		with open(file_path, 'r') as file:
+			tree = parser.parse(file.read())
+
+		now = datetime.now()
+
+		year = now.strftime('%Y')
+		month = now.strftime('%B')
+
+		date = int(now.strftime('%d'))
+		if 4 <= date <= 20 or 24 <= date <= 30:
+			date = str(date) + "th"
+		else:
+			date = str(date) + ["st", "nd", "rd"][date % 10 - 1]
+
+		time = now.strftime('%H:%M')
+
+		tree.create_entry([
+			ast.Time('YEAR', year),
+			ast.Time('MONTH', month),
+			ast.Time('DATE', date),
+			ast.Time('TIME', time)
+		], description
+		, ongoing=True)
 
 		print(tree.format())
 
