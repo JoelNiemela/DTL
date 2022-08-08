@@ -1,12 +1,17 @@
 class File:
-	def __init__(self, segments):
+	def __init__(self, header_time, segments):
+		self.header_time = header_time
 		self.segments = segments
 
 	def __repr__(self):
-		return 'File(' + str(self.segments) + ')'
+		return 'File(' + str(self.header_time) + ', ' + str(self.segments) + ')'
 
 	def format(self):
-		return ''.join([segment.format() for segment in self.segments])
+		str = ''
+		if len(self.header_time) > 0:
+			str += f'for {" ".join([t.format() for t in self.header_time])}:\n\n'
+		str += ''.join([segment.format() for segment in self.segments])
+		return str
 
 	def validate(self, header_time):
 		for segment in self.segments:

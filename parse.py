@@ -23,7 +23,7 @@ class Parser:
 		while self.lexer.peak().type == 'AT':
 			segments.append(self.parse_segment())
 
-		tree = ast.File(segments)
+		tree = ast.File(header_time, segments)
 		tree.validate(header_time)
 
 		return tree
