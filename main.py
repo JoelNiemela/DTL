@@ -44,6 +44,20 @@ if __name__ == "__main__":
 		with open(file_path, 'w') as file:
 			file.write(ast.format())
 
+	if cmd == 'find':
+		if len(args) < 2:
+			print('Error: expected an argument')
+			exit(1)
+
+		description = args[0]
+		file_path   = args[1]
+
+		parser = Parser(debug=True)
+		with open(file_path, 'r') as file:
+			tree = parser.parse(file.read())
+
+		print(''.join([f.format(full_time = True) for f in tree.find(description)]))
+
 	if cmd == 'add':
 		if len(args) < 2:
 			print('Error: expected an argument')

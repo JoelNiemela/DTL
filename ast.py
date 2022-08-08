@@ -3,6 +3,13 @@ class File:
 		self.header_time = header_time
 		self.segments = segments
 
+	def find(self, description):
+		finds = []
+		for segment in self.segments:
+			segment.find(description, finds)
+
+		return finds
+
 	def create_entry(self, time, description, ongoing=False):
 		sub_time = Time.remove_prefix(self.header_time, time)
 
@@ -38,6 +45,13 @@ class Segment:
 		self.attributes = attributes
 		self.ongoing = ongoing
 
+	def find(self, description, finds):
+		if self.description == description:
+			finds.append(self)
+
+		for segment in self.segments:
+			segment.find(description, finds)
+
 	def create_entry(self, time, description, ongoing=False):
 		sub_time = Time.remove_prefix(self.time, time)
 
@@ -52,13 +66,16 @@ class Segment:
 		return True
 
 	def __repr__(self):
-		return 'Segment(' + str(self.time) + ', ' + (self.description or '') + ', ' + str(self.segments) + ', ' + str(self.attributes) + ', ' + self.ongoing + ')'
+		return 'Segment(' + str(self.time) + ', ' + (self.description or '') + ', ' + str(self.segments) + ', ' + str(self.attributes) + ', ' + str(self.ongoing) + ')'
 
-	def format(self, tab=0):
+	def format(self, tab=0, / , full_time=False):
 		str = '\t' * tab
-		str += f'@{" ".join([t.format() for t in self.time])}'
+		if full_time:
+			str += f'@{" ".join([t.format() for t in self.full_time])}'
+		else:
+			str += f'@{" ".join([t.format() for t in self.time])}'
 		if self.ongoing:
-			str += ' ...'
+			str += '...'
 		if self.description != None:
 			str += f' [{self.description}]'
 		str += '\n'
