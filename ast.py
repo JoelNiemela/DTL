@@ -20,10 +20,25 @@ class Segment:
 
 	def format(self, tab=0):
 		str = '\t' * tab
-		str += f'@{" ".join(self.time)} {f"[{self.description}]" if self.description != None else ""}\n'
+		str += f'@{" ".join([t.format() for t in self.time])} '
+		if self.description != None:
+			str += f'[{self.description}]'
+		str += '\n'
 		str += ''.join([attr.format(tab+1) for attr in self.attributes])
 		str += ''.join([time.format(tab+1) for time in self.segments])
 		return str
+
+class Time:
+	def __init__(self, time_type, value):
+		self.type = time_type
+		self.value = value
+
+	def __repr__(self):
+		return 'Time(' + self.type + ', ' + self.value + ')'
+
+	def format(self):
+		return self.value
+
 
 class Cmd:
 	def __init__(self, command, description, options):
