@@ -24,48 +24,36 @@ def write_file(file_path, tree):
 	with open(file_path, 'w') as file:
 		file.write(tree.format())
 
-def parse_cmd(args):
-	assert_argc(args, 1)
-
-	file_path = args[0]
-
+def parse_cmd(file_path, args):
 	print(parse_file(file_path))
 	print(parse_file(file_path).format())
 
-def format_cmd(args):
-	assert_argc(args, 1)
-
-	file_path = args[0]
-
+def format_cmd(file_path, args):
 	tree = parse_file(file_path)
 
 	write_file(file_path, tree)
 
-def find_cmd(args):
-	assert_argc(args, 2)
+def find_cmd(file_path, args):
+	assert_argc(args, 1)
 
 	if args[0] == 'ongoing':
 		ongoing = True
 		description = args[1]
-		file_path   = args[2]
 	elif args[0] == 'static':
 		ongoing = False
 		description = args[1]
-		file_path   = args[2]
 	else:
 		ongoing = None
 		description = args[0]
-		file_path   = args[1]
 
 	tree = parse_file(file_path)
 
 	print(''.join([f.format(full_time = True) for f in tree.find(description, ongoing=ongoing)]))
 
-def add_cmd(args):
-	assert_argc(args, 2)
+def add_cmd(file_path, args):
+	assert_argc(args, 1)
 
 	description = args[0]
-	file_path   = args[1]
 
 	tree = parse_file(file_path)
 
@@ -75,11 +63,10 @@ def add_cmd(args):
 
 	write_file(file_path, tree)
 
-def begin_cmd(args):
-	assert_argc(args, 2)
+def begin_cmd(file_path, args):
+	assert_argc(args, 1)
 
 	description = args[0]
-	file_path   = args[1]
 
 	tree = parse_file(file_path)
 
@@ -100,11 +87,10 @@ def begin_cmd(args):
 
 	write_file(file_path, tree)
 
-def end_cmd(args):
-	assert_argc(args, 2)
+def end_cmd(file_path, args):
+	assert_argc(args, 1)
 
 	description = args[0]
-	file_path   = args[1]
 
 	tree = parse_file(file_path)
 
@@ -151,17 +137,17 @@ if __name__ == "__main__":
 		print('Error: expected a command')
 		exit(1)
 
-	cmd, *args = commands
+	file, cmd, *args = commands
 
 	if cmd == 'parse':
-		parse_cmd(args)
+		parse_cmd(file, args)
 	if cmd == 'format':
-		format_cmd(args)
+		format_cmd(file, args)
 	if cmd == 'find':
-		find_cmd(args)
+		find_cmd(file, args)
 	if cmd == 'add':
-		add_cmd(args)
+		add_cmd(file, args)
 	if cmd == 'begin':
-		begin_cmd(args)
+		begin_cmd(file, args)
 	if cmd == 'end':
-		end_cmd(args)
+		end_cmd(file, args)
