@@ -1,3 +1,5 @@
+from datetime import datetime
+
 class File:
 	def __init__(self, header_time, segments):
 		self.header_time = header_time
@@ -110,7 +112,7 @@ class Time:
 			print(f'{", ".join([t.type + " (" + t.value + ")" for t in time])}"')
 
 	@classmethod
-	def remove_prefix(self, prefix, time):
+	def remove_prefix(cls, prefix, time):
 		if len(prefix) > len(time):
 			return False
 
@@ -118,6 +120,28 @@ class Time:
 			return False
 
 		return list(time)[len(prefix):]
+
+	@classmethod
+	def now(cls):
+		now = datetime.now()
+
+		year = now.strftime('%Y')
+		month = now.strftime('%B')
+
+		date = int(now.strftime('%d'))
+		if 4 <= date <= 20 or 24 <= date <= 30:
+			date = str(date) + "th"
+		else:
+			date = str(date) + ["st", "nd", "rd"][date % 10 - 1]
+
+		time = now.strftime('%H:%M')
+
+		return [
+			Time('YEAR', year),
+			Time('MONTH', month),
+			Time('DATE', date),
+			Time('TIME', time)
+		]
 
 	def __init__(self, time_type, value):
 		self.type = time_type

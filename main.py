@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import sys
-from datetime import datetime
 
 from parse import Parser
 import ast
@@ -70,25 +69,7 @@ def add_cmd(args):
 
 	tree = parse_file(file_path)
 
-	now = datetime.now()
-
-	year = now.strftime('%Y')
-	month = now.strftime('%B')
-
-	date = int(now.strftime('%d'))
-	if 4 <= date <= 20 or 24 <= date <= 30:
-		date = str(date) + "th"
-	else:
-		date = str(date) + ["st", "nd", "rd"][date % 10 - 1]
-
-	time = now.strftime('%H:%M')
-
-	tree.create_entry([
-		ast.Time('YEAR', year),
-		ast.Time('MONTH', month),
-		ast.Time('DATE', date),
-		ast.Time('TIME', time)
-	], description)
+	tree.create_entry(ast.Time.now(), description)
 
 	print(tree.format())
 
@@ -113,26 +94,7 @@ def begin_cmd(args):
 		print(''.join(['\t' + f.format(full_time = True) for f in already_ongoing]))
 		exit(0)
 
-	now = datetime.now()
-
-	year = now.strftime('%Y')
-	month = now.strftime('%B')
-
-	date = int(now.strftime('%d'))
-	if 4 <= date <= 20 or 24 <= date <= 30:
-		date = str(date) + "th"
-	else:
-		date = str(date) + ["st", "nd", "rd"][date % 10 - 1]
-
-	time = now.strftime('%H:%M')
-
-	tree.create_entry([
-		ast.Time('YEAR', year),
-		ast.Time('MONTH', month),
-		ast.Time('DATE', date),
-		ast.Time('TIME', time)
-	], description
-	, ongoing=True)
+	tree.create_entry(ast.Time.now(), description, ongoing = True)
 
 	print(tree.format())
 
