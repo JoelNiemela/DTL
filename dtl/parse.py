@@ -1,5 +1,5 @@
-from tokenize import Lexer, Token
-import ast
+from dtl.tokenize import Lexer, Token
+import dtl.ast as ast
 
 class Parser:
 	def __init__(self, debug=False):

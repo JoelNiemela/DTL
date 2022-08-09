@@ -2,8 +2,8 @@
 
 import sys
 
-from parse import Parser
-import ast
+from dtl.parse import Parser
+from dtl import ast
 
 def assert_argc(args, count):
 	if len(args) < count:
@@ -134,7 +134,7 @@ def end_cmd(file_path, args):
 
 	write_file(file_path, tree)
 
-if __name__ == "__main__":
+def main():
 	flags    = [flag for flag in sys.argv[1:] if flag[0] == '-']
 	commands = [cmd  for cmd  in sys.argv[1:] if  cmd[0] != '-']
 
@@ -156,3 +156,7 @@ if __name__ == "__main__":
 		begin_cmd(file, args)
 	if cmd == 'end':
 		end_cmd(file, args)
+
+if __name__ == "__main__":
+	main()
+
