@@ -14,26 +14,27 @@ def assert_argc(args, count):
 			print(f'Error: expected {count} arguments')
 		exit(1)
 
+def parse_file(file_path):
+	parser = Parser(debug = False)
+	with open(file_path, 'r') as file:
+		tree = parser.parse(file.read())
+
+	return tree
+
 def parse_cmd(args):
 	assert_argc(args, 1)
 
 	file_path = args[0]
 
-	with open(file_path, 'r') as file:
-		parser = Parser(debug=False)
-		print(parser.parse(file.read()))
-
-		file.seek(0)
-		print(parser.parse(file.read()).format())
+	print(parse_file(file_path))
+	print(parse_file(file_path).format())
 
 def format_cmd(args):
 	assert_argc(args, 1)
 
 	file_path = args[0]
 
-	parser = Parser()
-	with open(file_path, 'r') as file:
-		ast = parser.parse(file.read())
+	ast = parse_file(file_path)
 
 	with open(file_path, 'w') as file:
 		file.write(ast.format())
@@ -54,9 +55,7 @@ def find_cmd(args):
 		description = args[0]
 		file_path   = args[1]
 
-	parser = Parser(debug=False)
-	with open(file_path, 'r') as file:
-		tree = parser.parse(file.read())
+	tree = parse_file(file_path)
 
 	print(''.join([f.format(full_time = True) for f in tree.find(description, ongoing=ongoing)]))
 
@@ -66,9 +65,7 @@ def add_cmd(args):
 	description = args[0]
 	file_path   = args[1]
 
-	parser = Parser(debug=False)
-	with open(file_path, 'r') as file:
-		tree = parser.parse(file.read())
+	tree = parse_file(file_path)
 
 	now = datetime.now()
 
@@ -101,9 +98,7 @@ def begin_cmd(args):
 	description = args[0]
 	file_path   = args[1]
 
-	parser = Parser()
-	with open(file_path, 'r') as file:
-		tree = parser.parse(file.read())
+	tree = parse_file(file_path)
 
 	already_ongoing = tree.find(description, ongoing = True)
 	if len(already_ongoing) > 0:
@@ -148,9 +143,7 @@ def end_cmd(args):
 	description = args[0]
 	file_path   = args[1]
 
-	parser = Parser(debug=False)
-	with open(file_path, 'r') as file:
-		tree = parser.parse(file.read())
+	tree = parse_file(file_path)
 
 	finds = tree.find(description, ongoing = True, with_parent = True)
 
