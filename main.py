@@ -14,7 +14,7 @@ def assert_argc(args, count):
 			print(f'Error: expected {count} arguments')
 		exit(1)
 
-def parse(args):
+def parse_cmd(args):
 	assert_argc(args, 1)
 
 	file_path = args[0]
@@ -26,7 +26,7 @@ def parse(args):
 		file.seek(0)
 		print(parser.parse(file.read()).format())
 
-def format_file(args):
+def format_cmd(args):
 	assert_argc(args, 1)
 
 	file_path = args[0]
@@ -38,7 +38,7 @@ def format_file(args):
 	with open(file_path, 'w') as file:
 		file.write(ast.format())
 
-def find(args):
+def find_cmd(args):
 	assert_argc(args, 2)
 
 	if args[0] == 'ongoing':
@@ -60,7 +60,7 @@ def find(args):
 
 	print(''.join([f.format(full_time = True) for f in tree.find(description, ongoing=ongoing)]))
 
-def add(args):
+def add_cmd(args):
 	assert_argc(args, 2)
 
 	description = args[0]
@@ -95,7 +95,7 @@ def add(args):
 	with open(file_path, 'w') as file:
 		file.write(tree.format())
 
-def begin(args):
+def begin_cmd(args):
 	assert_argc(args, 2)
 
 	description = args[0]
@@ -142,7 +142,7 @@ def begin(args):
 	with open(file_path, 'w') as file:
 		file.write(tree.format())
 
-def end(args):
+def end_cmd(args):
 	assert_argc(args, 2)
 
 	description = args[0]
@@ -199,14 +199,14 @@ if __name__ == "__main__":
 	cmd, *args = commands
 
 	if cmd == 'parse':
-		parse(args)
+		parse_cmd(args)
 	if cmd == 'format':
-		format_file(args)
+		format_cmd(args)
 	if cmd == 'find':
-		find(args)
+		find_cmd(args)
 	if cmd == 'add':
-		add(args)
+		add_cmd(args)
 	if cmd == 'begin':
-		begin(args)
+		begin_cmd(args)
 	if cmd == 'end':
-		end(args)
+		end_cmd(args)
