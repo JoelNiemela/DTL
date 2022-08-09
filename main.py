@@ -11,7 +11,7 @@ if __name__ == "__main__":
 	commands = [cmd  for cmd  in sys.argv[1:] if  cmd[0] != '-']
 
 	if len(commands) < 1:
-		print('Error: expected at a command')
+		print('Error: expected a command')
 		exit(1)
 
 	cmd, *args = commands
