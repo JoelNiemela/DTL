@@ -138,8 +138,8 @@ def main():
 	flags    = [flag for flag in sys.argv[1:] if flag[0] == '-']
 	commands = [cmd  for cmd  in sys.argv[1:] if  cmd[0] != '-']
 
-	if len(commands) < 1:
-		print('Error: expected a command')
+	if len(commands) < 2:
+		print('Error: expected a file path and a command')
 		exit(1)
 
 	file, cmd, *args = commands
