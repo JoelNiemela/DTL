@@ -6,10 +6,16 @@ from datetime import datetime
 from parse import Parser
 import ast
 
-def parse(args):
-	if len(args) < 1:
-		print('Error: expected an argument')
+def assert_argc(args, count):
+	if len(args) < count:
+		if count == 1:
+			print('Error: expected an argument')
+		else:
+			print(f'Error: expected {count} arguments')
 		exit(1)
+
+def parse(args):
+	assert_argc(args, 1)
 
 	file_path = args[0]
 
@@ -21,9 +27,7 @@ def parse(args):
 		print(parser.parse(file.read()).format())
 
 def format_file(args):
-	if len(args) < 1:
-		print('Error: expected an argument')
-		exit(1)
+	assert_argc(args, 1)
 
 	file_path = args[0]
 
@@ -35,9 +39,7 @@ def format_file(args):
 		file.write(ast.format())
 
 def find(args):
-	if len(args) < 2:
-		print('Error: expected an argument')
-		exit(1)
+	assert_argc(args, 2)
 
 	if args[0] == 'ongoing':
 		ongoing = True
@@ -59,9 +61,7 @@ def find(args):
 	print(''.join([f.format(full_time = True) for f in tree.find(description, ongoing=ongoing)]))
 
 def add(args):
-	if len(args) < 2:
-		print('Error: expected an argument')
-		exit(1)
+	assert_argc(args, 2)
 
 	description = args[0]
 	file_path   = args[1]
@@ -96,9 +96,7 @@ def add(args):
 		file.write(tree.format())
 
 def begin(args):
-	if len(args) < 2:
-		print('Error: expected an argument')
-		exit(1)
+	assert_argc(args, 2)
 
 	description = args[0]
 	file_path   = args[1]
@@ -145,9 +143,7 @@ def begin(args):
 		file.write(tree.format())
 
 def end(args):
-	if len(args) < 2:
-		print('Error: expected an argument')
-		exit(1)
+	assert_argc(args, 2)
 
 	description = args[0]
 	file_path   = args[1]
