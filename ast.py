@@ -3,10 +3,10 @@ class File:
 		self.header_time = header_time
 		self.segments = segments
 
-	def find(self, description, ongoing=None):
+	def find(self, description, ongoing=None, with_parent=False):
 		finds = []
 		for segment in self.segments:
-			segment.find(description, finds, ongoing=ongoing)
+			segment.find(description, finds, ongoing=ongoing, with_parent=with_parent, parent_ref=self)
 
 		return finds
 
@@ -45,13 +45,16 @@ class Segment:
 		self.attributes = attributes
 		self.ongoing = ongoing
 
-	def find(self, description, finds, ongoing=None):
+	def find(self, description, finds, ongoing=None, with_parent=False, parent_ref=None):
 		if description == self.description:
 			if ongoing == self.ongoing or ongoing == None:
-				finds.append(self)
+				if with_parent:
+					finds.append((self, parent_ref))
+				else:
+					finds.append(self)
 
 		for segment in self.segments:
-			segment.find(description, finds, ongoing=ongoing)
+			segment.find(description, finds, ongoing=ongoing, with_parent=with_parent, parent_ref=self)
 
 	def create_entry(self, time, description, ongoing=False):
 		sub_time = Time.remove_prefix(self.time, time)
