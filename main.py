@@ -15,8 +15,13 @@ def assert_argc(args, count):
 
 def parse_file(file_path):
 	parser = Parser(debug = False)
-	with open(file_path, 'r') as file:
-		tree = parser.parse(file.read())
+
+	try:
+		with open(file_path, 'r') as file:
+			tree = parser.parse(file.read())
+	except FileNotFoundError:
+		print(f'Error: can\'t find file "{file_path}"')
+		exit(1)
 
 	return tree
 
