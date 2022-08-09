@@ -21,6 +21,10 @@ def parse_file(file_path):
 
 	return tree
 
+def write_file(file_path, tree):
+	with open(file_path, 'w') as file:
+		file.write(tree.format())
+
 def parse_cmd(args):
 	assert_argc(args, 1)
 
@@ -34,10 +38,9 @@ def format_cmd(args):
 
 	file_path = args[0]
 
-	ast = parse_file(file_path)
+	tree = parse_file(file_path)
 
-	with open(file_path, 'w') as file:
-		file.write(ast.format())
+	write_file(file_path, tree)
 
 def find_cmd(args):
 	assert_argc(args, 2)
@@ -89,8 +92,7 @@ def add_cmd(args):
 
 	print(tree.format())
 
-	with open(file_path, 'w') as file:
-		file.write(tree.format())
+	write_file(file_path, tree)
 
 def begin_cmd(args):
 	assert_argc(args, 2)
@@ -134,8 +136,7 @@ def begin_cmd(args):
 
 	print(tree.format())
 
-	with open(file_path, 'w') as file:
-		file.write(tree.format())
+	write_file(file_path, tree)
 
 def end_cmd(args):
 	assert_argc(args, 2)
@@ -178,8 +179,7 @@ def end_cmd(args):
 
 	parent.segments = [e for e in parent.segments if e is not segment]
 
-	with open(file_path, 'w') as file:
-		file.write(tree.format())
+	write_file(file_path, tree)
 
 if __name__ == "__main__":
 	flags    = [flag for flag in sys.argv[1:] if flag[0] == '-']
