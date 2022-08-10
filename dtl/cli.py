@@ -5,6 +5,8 @@ import sys
 from dtl.parse import Parser
 from dtl import ast
 
+VERSION = 'v0.1.1-alpha'
+
 def assert_argc(args, count):
 	if len(args) < count:
 		if count == 1:
@@ -13,7 +15,14 @@ def assert_argc(args, count):
 			print(f'Error: expected {count} arguments')
 		exit(1)
 
+def require(name, value):
+	if value == None:
+		print(f'Error: argument "{name}" is required')
+		exit(1)
+
 def parse_file(file_path):
+	require('file', file_path)
+
 	parser = Parser(debug = False)
 
 	try:
@@ -26,19 +35,27 @@ def parse_file(file_path):
 	return tree
 
 def write_file(file_path, tree):
+	require('file', file_path)
+
 	with open(file_path, 'w') as file:
 		file.write(tree.format())
 
 def parse_cmd(file_path, args):
+	require('file', file_path)
+
 	print(parse_file(file_path))
 	print(parse_file(file_path).format())
 
 def format_cmd(file_path, args):
+	require('file', file_path)
+
 	tree = parse_file(file_path)
 
 	write_file(file_path, tree)
 
 def find_cmd(file_path, args):
+	require('file', file_path)
+
 	assert_argc(args, 1)
 
 	if args[0] == 'ongoing':
@@ -56,6 +73,8 @@ def find_cmd(file_path, args):
 	print(''.join([f.format(full_time = True) for f in tree.find(description, ongoing=ongoing)]))
 
 def add_cmd(file_path, args):
+	require('file', file_path)
+
 	assert_argc(args, 1)
 
 	description = args[0]
@@ -69,6 +88,8 @@ def add_cmd(file_path, args):
 	write_file(file_path, tree)
 
 def begin_cmd(file_path, args):
+	require('file', file_path)
+
 	assert_argc(args, 1)
 
 	description = args[0]
@@ -93,6 +114,8 @@ def begin_cmd(file_path, args):
 	write_file(file_path, tree)
 
 def end_cmd(file_path, args):
+	require('file', file_path)
+
 	assert_argc(args, 1)
 
 	description = args[0]
@@ -134,28 +157,90 @@ def end_cmd(file_path, args):
 
 	write_file(file_path, tree)
 
+def help_cmd(file=None, cmd=None, args=[]):
+	match cmd:
+		case 'parse':
+			print('dtl [file] parse\n')
+			print('\tParse and print parse-tree of the given file.')
+		case 'format':
+			print('dtl [file] format\n')
+			print('\tReformat the given file to conform to the standard style guide.')
+		case 'find':
+			print('dtl [file] find (ongoing|static) [description]\n')
+			print('\tPrints a list of entries in the given file with the given description.')
+			print('\tOnly returns ongoing or static entries with ongoing or static options;')
+			print('\treturns both by default.')
+		case 'add':
+			print('dtl [file] add [description]\n')
+			print('\tAdds an entry to the given file with the given description')
+			print('\tand the current time as its timestamp.')
+		case 'begin':
+			print('dtl [file] begin [description]\n')
+			print('\tSame as dtl add, but marks the entry as ongoing.')
+		case 'end':
+			print('dtl [file] end [description]\n')
+			print('\tCloses an ongoing entry in the given file with the given description.')
+		case None:
+			print(f'DTL {VERSION}')
+			print()
+			print('Available commands:')
+			print('\tdtl [file] parse')
+			print('\t\tParse and print parse-tree of the given file.\n')
+			print('\tdtl [file] format')
+			print('\t\tReformat the given file to conform to the standard style guide.\n')
+			print('\tdtl [file] find (ongoing|static) [description]')
+			print('\t\tPrints a list of entries in the given file with the given description.')
+			print('\t\tOnly returns ongoing or static entries with ongoing or static options;')
+			print('\t\treturns both by default.\n')
+			print('\tdtl [file] add [description]')
+			print('\t\tAdds an entry to the given file with the given description')
+			print('\t\tand the current time as its timestamp.\n')
+			print('\tdtl [file] begin [description]')
+			print('\t\tSame as dtl add, but marks the entry as ongoing.\n')
+			print('\tdtl [file] end [description]')
+			print('\t\tCloses an ongoing entry in the given file with the given description.\n')
+			print()
+			print('Flags:')
+			print('\t--help')
+			print('\t\tShow this message.')
+			print('\t\tIf a command is specified: show more information about that command.\n')
+
+		case _:
+			print(f'Unknown command "{cmd}". Type "dtl --help" for a list of commands.')
+
 def main():
-	flags    = [flag for flag in sys.argv[1:] if flag[0] == '-']
-	commands = [cmd  for cmd  in sys.argv[1:] if  cmd[0] != '-']
+	flags    = [flag.lstrip('-') for flag in sys.argv[1:] if flag[0] == '-']
+	commands = [cmd              for cmd  in sys.argv[1:] if  cmd[0] != '-']
 
-	if len(commands) < 2:
-		print('Error: expected a file path and a command')
-		exit(1)
+	cmd = None
+	file = None
+	match len(commands):
+		case 0:
+			args = commands
+		case 1:
+			cmd, *args = commands
+		case _:
+			file, cmd, *args = commands
 
-	file, cmd, *args = commands
+	if 'help' in flags or 'h' in flags:
+		help_cmd(file, cmd, args)
+		exit(0)
 
-	if cmd == 'parse':
-		parse_cmd(file, args)
-	if cmd == 'format':
-		format_cmd(file, args)
-	if cmd == 'find':
-		find_cmd(file, args)
-	if cmd == 'add':
-		add_cmd(file, args)
-	if cmd == 'begin':
-		begin_cmd(file, args)
-	if cmd == 'end':
-		end_cmd(file, args)
+	match cmd:
+		case 'parse':
+			parse_cmd(file, args)
+		case 'format':
+			format_cmd(file, args)
+		case 'find':
+			find_cmd(file, args)
+		case 'add':
+			add_cmd(file, args)
+		case 'begin':
+			begin_cmd(file, args)
+		case 'end':
+			end_cmd(file, args)
+		case _:
+			help_cmd(file, cmd, args)
 
 if __name__ == "__main__":
 	main()
