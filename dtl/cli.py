@@ -159,6 +159,27 @@ def end_cmd(file_path, args):
 
 def help_cmd(file=None, cmd=None, args=[]):
 	match cmd:
+		case 'parse':
+			print('dtl [file] parse\n')
+			print('\tParse and print parse-tree of the given file.')
+		case 'format':
+			print('dtl [file] format\n')
+			print('\tReformat the given file to conform to the standard style guide.')
+		case 'find':
+			print('dtl [file] find (ongoing|static) [description]\n')
+			print('\tPrints a list of entries in the given file with the given description.')
+			print('\tOnly returns ongoing or static entries with ongoing or static options;')
+			print('\treturns both by default.')
+		case 'add':
+			print('dtl [file] add [description]\n')
+			print('\tAdds an entry to the given file with the given description')
+			print('\tand the current time as its timestamp.')
+		case 'begin':
+			print('dtl [file] begin [description]\n')
+			print('\tSame as dtl add, but marks the entry as ongoing.')
+		case 'end':
+			print('dtl [file] end [description]\n')
+			print('\tCloses an ongoing entry in the given file with the given description.')
 		case None:
 			print(f'DTL {VERSION}')
 			print()
