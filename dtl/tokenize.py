@@ -77,6 +77,10 @@ class Lexer:
 						line_indent += 1
 				case 'WS':
 					continue
+				case 'ERROR':
+					print(f'Error: unexpected charachter "{token_val}"')
+					at_line_start = False
+					self.tokens.append(Token(token_type, token_val))
 				case _:
 					at_line_start = False
 					self.tokens.append(Token(token_type, token_val))
