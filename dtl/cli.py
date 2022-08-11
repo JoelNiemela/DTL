@@ -226,6 +226,10 @@ def main():
 		help_cmd(file, cmd, args)
 		exit(0)
 
+	if 'version' in flags:
+		print(f'DTL {VERSION}')
+		exit(0)
+
 	match cmd:
 		case 'parse':
 			parse_cmd(file, args)
