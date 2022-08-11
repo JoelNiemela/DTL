@@ -5,7 +5,7 @@ import sys
 from dtl.parse import Parser
 from dtl import ast
 
-VERSION = 'v0.1.1-alpha'
+VERSION = 'v0.1.2-alpha'
 
 def assert_argc(args, count):
 	if len(args) < count:
@@ -224,6 +224,10 @@ def main():
 
 	if 'help' in flags or 'h' in flags:
 		help_cmd(file, cmd, args)
+		exit(0)
+
+	if 'version' in flags:
+		print(f'DTL {VERSION}')
 		exit(0)
 
 	match cmd:
