@@ -155,6 +155,12 @@ def end_cmd(file_path, args):
 
 	parent.segments = [e for e in parent.segments if e is not segment]
 
+	segment.ongoing = False
+	segment.time = ast.Time.timespan(segment.full_time, ast.Time.now())
+	segment.full_time = None
+
+	tree.insert_segment(segment)
+
 	write_file(file_path, tree)
 
 def help_cmd(file=None, cmd=None, args=[]):
