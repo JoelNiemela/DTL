@@ -5,7 +5,7 @@ import sys
 from dtl.parse import Parser
 from dtl import ast
 
-VERSION = 'v0.1.2-alpha'
+VERSION = 'v0.1.3-alpha'
 
 def assert_argc(args, count):
 	if len(args) < count:
@@ -154,6 +154,12 @@ def end_cmd(file_path, args):
 		segment, parent = finds[0]
 
 	parent.segments = [e for e in parent.segments if e is not segment]
+
+	segment.ongoing = False
+	segment.time = ast.Time.timespan(segment.full_time, ast.Time.now())
+	segment.full_time = None
+
+	tree.insert_segment(segment)
 
 	write_file(file_path, tree)
 

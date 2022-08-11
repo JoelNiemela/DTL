@@ -25,6 +25,21 @@ class File:
 		self.segments.append(Segment(sub_time, description, [], [], ongoing))
 		return True
 
+	def insert_segment(self, segment):
+		time = Time.remove_prefix(self.header_time, segment.time)
+
+		if time == False or time == []:
+			return False
+
+		segment.time = time
+
+		for seg in self.segments:
+			if seg.insert_segment(segment):
+				return True
+
+		self.segments.append(segment)
+		return True
+
 	def __repr__(self):
 		return 'File(' + str(self.header_time) + ', ' + str(self.segments) + ')'
 
@@ -69,6 +84,21 @@ class Segment:
 				return True
 
 		self.segments.append(Segment(sub_time, description, [], [], ongoing))
+		return True
+
+	def insert_segment(self, segment):
+		time = Time.remove_prefix(self.time, segment.time)
+
+		if time == False or time == []:
+			return False
+
+		segment.time = time
+
+		for seg in self.segments:
+			if seg.insert_segment(segment):
+				return True
+
+		self.segments.append(segment)
 		return True
 
 	def __repr__(self):
@@ -143,6 +173,19 @@ class Time:
 			Time('TIME', time)
 		]
 
+	@classmethod
+	def timespan(cls, start, end):
+		if start == end:
+			return start
+
+		prefix_len = next((i for i, v in enumerate(zip(start, end)) if v[0] != v[1]), min(len(start), len(end)))
+
+		prefix = start[0:prefix_len]
+		del start[0:prefix_len]
+		del   end[0:prefix_len]
+
+		return prefix + [Time('PERIOD', (start, end))]
+
 	def __init__(self, time_type, value):
 		self.type = time_type
 		self.value = value
@@ -151,15 +194,21 @@ class Time:
 		return self.type == other.type and self.value == other.value
 
 	def index(self):
+		if self.type == 'PERIOD':
+			return self.value[0][0].index()
+
 		time_order = ['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME']
 		index = time_order.index(self.type)
 		return index
 
 	def __repr__(self):
-		return 'Time(' + self.type + ', ' + self.value + ')'
+		return 'Time(' + self.type + ', ' + str(self.value) + ')'
 
 	def format(self):
-		return self.value
+		if self.type == 'PERIOD':
+			return ' '.join([t.format() for t in self.value[0]]) + '-' + ' '.join([t.format() for t in self.value[1]])
+		else:
+			return self.value
 
 class Cmd:
 	def __init__(self, command, description, options):
@@ -168,6 +217,9 @@ class Cmd:
 		self.options = options
 
 	def create_entry(self, time, description):
+		return False
+
+	def insert_segment(self, segment):
 		return False
 
 	def __repr__(self):
