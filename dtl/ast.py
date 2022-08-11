@@ -194,6 +194,9 @@ class Time:
 		return self.type == other.type and self.value == other.value
 
 	def index(self):
+		if self.type == 'PERIOD':
+			return self.value[0][0].index()
+
 		time_order = ['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME']
 		index = time_order.index(self.type)
 		return index

@@ -54,9 +54,21 @@ class Parser:
 
 	def parse_time(self):
 		self.lexer.assert_token('AT')
-		time = [self.lexer.assert_token(['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME'])]
+		time_tokens = [self.lexer.assert_token(['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME'])]
 		while self.lexer.peak().type in ['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME']:
-			time.append(self.lexer.pop())
+			time_tokens.append(self.lexer.pop())
+
+		time = [ast.Time(t.type, t.value) for t in time_tokens]
+
+		if self.lexer.peak().type == 'PERIOD':
+			self.lexer.assert_token('PERIOD')
+			period_end_tokens = [self.lexer.assert_token(['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME'])]
+			while self.lexer.peak().type in ['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME']:
+				period_end_tokens.append(self.lexer.pop())
+
+			period_end = [ast.Time(t.type, t.value) for t in period_end_tokens]
+
+			time = ast.Time.timespan(time, period_end)
 
 		if self.lexer.peak().type == 'ONGOING':
 			self.lexer.assert_token('ONGOING')
@@ -75,7 +87,7 @@ class Parser:
 		if self.lexer.peak().type == 'OPEN':
 			segments = self.parse_segments()
 
-		return ast.Segment([ast.Time(t.type, t.value) for t in time], desc, segments, [], ongoing)
+		return ast.Segment(time, desc, segments, [], ongoing)
 
 	def parse_cmd(self):
 		cmd = self.lexer.assert_token('CMD')
