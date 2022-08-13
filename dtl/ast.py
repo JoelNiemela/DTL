@@ -175,6 +175,12 @@ class Time:
 
 	@classmethod
 	def timespan(cls, start, end):
+		for i in range(len(start)):
+			if start[i].type != end[i].type:
+				end.insert(i, start[i])
+			else:
+				break
+
 		if start == end:
 			return start
 
@@ -184,6 +190,7 @@ class Time:
 		del start[0:prefix_len]
 		del   end[0:prefix_len]
 
+		print(prefix, start, end)
 		return prefix + [Time('PERIOD', (start, end))]
 
 	def __init__(self, time_type, value):
