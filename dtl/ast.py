@@ -22,7 +22,15 @@ class File:
 			if segment.create_entry(sub_time, description, ongoing=ongoing):
 				return True
 
-		self.segments.append(Segment(sub_time, description, [], [], ongoing))
+		scope_time = sub_time[:-1]
+		seg_time = sub_time[-1]
+
+		segment = Segment(seg_time, description, [], [], ongoing)
+
+		for t in reversed(scope_time):
+			segment = Segment(t, None, [segment], [], False)
+
+		self.segments.append(segment)
 		return True
 
 	def insert_segment(self, segment):
@@ -83,7 +91,15 @@ class Segment:
 			if segment.create_entry(sub_time, description, ongoing=ongoing):
 				return True
 
-		self.segments.append(Segment(sub_time, description, [], [], ongoing))
+		scope_time = sub_time[:-1]
+		seg_time = sub_time[-1]
+
+		segment = Segment(seg_time, description, [], [], ongoing)
+
+		for t in reversed(scope_time):
+			segment = Segment(t, None, [segment], [], False)
+
+		self.segments.append(segment)
 		return True
 
 	def insert_segment(self, segment):
@@ -109,7 +125,7 @@ class Segment:
 		if full_time:
 			str += f'@{" ".join([t.format() for t in self.full_time])}'
 		else:
-			str += f'@{" ".join([t.format() for t in self.time])}'
+			str += f'@{self.time.format()}'
 		if self.ongoing:
 			str += '...'
 		if self.description != None:
@@ -120,7 +136,7 @@ class Segment:
 		return str
 
 	def validate(self, scope_time):
-		time = scope_time + self.time
+		time = scope_time + [self.time]
 		Time.validate_time(time)
 
 		self.full_time = time

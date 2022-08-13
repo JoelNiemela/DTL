@@ -90,10 +90,10 @@ class Parser:
 		scope_time = time[:-1]
 		time = time[-1]
 
-		segment = ast.Segment([time], desc, segments, [], ongoing)
+		segment = ast.Segment(time, desc, segments, [], ongoing)
 
 		for t in reversed(scope_time):
-				segment = ast.Segment([t], None, [segment], [], False)
+				segment = ast.Segment(t, None, [segment], [], False)
 
 		return segment
 
