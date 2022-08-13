@@ -63,11 +63,11 @@ class File:
 			segment.validate(header_time)
 
 class Segment:
-	def __init__(self, time, description, segments, attributes, ongoing):
+	def __init__(self, time, description, segments, commands, ongoing):
 		self.time = time
 		self.description = description
 		self.segments = segments
-		self.attributes = attributes
+		self.commands = commands
 		self.ongoing = ongoing
 
 	def find(self, description, finds, ongoing=None, with_parent=False, parent_ref=None):
@@ -118,7 +118,7 @@ class Segment:
 		return True
 
 	def __repr__(self):
-		return 'Segment(' + str(self.time) + ', ' + (self.description or '') + ', ' + str(self.segments) + ', ' + str(self.attributes) + ', ' + str(self.ongoing) + ')'
+		return 'Segment(' + str(self.time) + ', ' + (self.description or '') + ', ' + str(self.segments) + ', ' + str(self.commands) + ', ' + str(self.ongoing) + ')'
 
 	def format(self, tab=0, / , full_time=False):
 		str = '\t' * tab
@@ -131,7 +131,7 @@ class Segment:
 		if self.description != None:
 			str += f' [{self.description}]'
 		str += '\n'
-		str += ''.join([attr.format(tab+1) for attr in self.attributes])
+		str += ''.join([cmd.format(tab+1)  for cmd  in self.commands])
 		str += ''.join([time.format(tab+1) for time in self.segments])
 		return str
 
