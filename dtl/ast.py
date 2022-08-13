@@ -206,7 +206,6 @@ class Time:
 		del start[0:prefix_len]
 		del   end[0:prefix_len]
 
-		print(prefix, start, end)
 		return prefix + [Time('PERIOD', (start, end))]
 
 	def __init__(self, time_type, value):

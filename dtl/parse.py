@@ -21,7 +21,7 @@ class Parser:
 
 		segments = []
 		while self.lexer.peak().type == 'AT':
-			segments.append(self.parse_segment())
+			segments.append(self.parse_attribute())
 
 		tree = ast.File(header_time, segments)
 		tree.validate(header_time)
@@ -39,10 +39,10 @@ class Parser:
 
 		return ln
 
-	def parse_segments(self):
-		return self.parse_block(self.parse_segment)
+	def parse_attributes(self):
+		return self.parse_block(self.parse_attribute)
 
-	def parse_segment(self):
+	def parse_attribute(self):
 		match self.lexer.peak().type:
 			case 'AT':
 				return self.parse_time()
@@ -83,17 +83,20 @@ class Parser:
 
 		self.lexer.assert_token('NL')
 
-		segments = []
+		attributes = []
 		if self.lexer.peak().type == 'OPEN':
-			segments = self.parse_segments()
+			attributes = self.parse_attributes()
+
+		segments = [seg for seg in attributes if isinstance(seg, ast.Segment)]
+		commands = [cmd for cmd in attributes if isinstance(cmd, ast.Cmd)]
 
 		scope_time = time[:-1]
 		time = time[-1]
 
-		segment = ast.Segment(time, desc, segments, [], ongoing)
+		segment = ast.Segment(time, desc, segments, commands, ongoing)
 
 		for t in reversed(scope_time):
-				segment = ast.Segment(t, None, [segment], [], False)
+			segment = ast.Segment(t, None, [segment], [], False)
 
 		return segment
 
