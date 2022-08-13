@@ -1,9 +1,15 @@
 from datetime import datetime
+from collections import defaultdict
+from functools import reduce
+from operator import concat
 
 class File:
 	def __init__(self, header_time, segments):
 		self.header_time = header_time
-		self.segments = segments
+
+		self.segments = defaultdict(list)
+		for segment in segments:
+			self.segments[segment.time].append(segment)
 
 	def find(self, description, ongoing=None, with_parent=False):
 		finds = []
@@ -30,7 +36,7 @@ class File:
 		for t in reversed(scope_time):
 			segment = Segment(t, None, [segment], [], False)
 
-		self.segments.append(segment)
+		self.segments[segment.time].append(segment)
 		return True
 
 	def insert_segment(self, segment):
@@ -45,7 +51,7 @@ class File:
 			if seg.insert_segment(segment):
 				return True
 
-		self.segments.append(segment)
+		self.segments[segment.time].append(segment)
 		return True
 
 	def __repr__(self):
@@ -55,18 +61,33 @@ class File:
 		str = ''
 		if len(self.header_time) > 0:
 			str += f'for {" ".join([t.format() for t in self.header_time])}:\n\n'
-		str += ''.join([segment.format() for segment in self.segments])
+		str += ''.join([segment.format() for segment in reduce(concat, self.segments.values(), [])])
 		return str
 
 	def validate(self, header_time):
-		for segment in self.segments:
-			segment.validate(header_time)
+		self.segments = {k: reduce(lambda acc, s: s.merge_into(acc), v, {'tagged': [], 'merged': Segment(k, None, [], [], False)}) for k, v in self.segments.items()}
+
+		def filter_empty(v):
+			if len(v.segments) == 0:
+				return []
+			else:
+				return [v]
+
+		self.segments = {k: v['tagged'] + filter_empty(v['merged']) for k, v in self.segments.items()}
+
+		for sub_time in self.segments.keys():
+			for segment in self.segments[sub_time]:
+				segment.validate(header_time)
 
 class Segment:
 	def __init__(self, time, description, segments, commands, ongoing):
 		self.time = time
 		self.description = description
-		self.segments = segments
+
+		self.segments = defaultdict(list)
+		for segment in segments:
+			self.segments[segment.time].append(segment)
+
 		self.commands = commands
 		self.ongoing = ongoing
 
@@ -87,7 +108,7 @@ class Segment:
 		if sub_time == False or sub_time == []:
 			return False
 
-		for segment in self.segments:
+		for segment in self.segments.items():
 			if segment.create_entry(sub_time, description, ongoing=ongoing):
 				return True
 
@@ -99,7 +120,7 @@ class Segment:
 		for t in reversed(scope_time):
 			segment = Segment(t, None, [segment], [], False)
 
-		self.segments.append(segment)
+		self.segments[segment.time].append(segment)
 		return True
 
 	def insert_segment(self, segment):
@@ -114,11 +135,20 @@ class Segment:
 			if seg.insert_segment(segment):
 				return True
 
-		self.segments.append(segment)
+		self.segments[segment.time].append(segment)
 		return True
 
 	def __repr__(self):
 		return 'Segment(' + str(self.time) + ', ' + (self.description or '') + ', ' + str(self.segments) + ', ' + str(self.commands) + ', ' + str(self.ongoing) + ')'
+
+	def merge_into(self, segments):
+		if self.description == None and self.commands == []:
+			for time, seg in self.segments.items():
+				segments['merged'].segments[time] += seg
+		else:
+			segments['tagged'].append(self)
+
+		return segments
 
 	def format(self, tab=0, / , full_time=False):
 		str = '\t' * tab
@@ -132,7 +162,7 @@ class Segment:
 			str += f' [{self.description}]'
 		str += '\n'
 		str += ''.join([cmd.format(tab+1)  for cmd  in self.commands])
-		str += ''.join([time.format(tab+1) for time in self.segments])
+		str += ''.join([time.format(tab+1) for time in reduce(concat, self.segments.values(), [])])
 		return str
 
 	def validate(self, scope_time):
@@ -141,8 +171,21 @@ class Segment:
 
 		self.full_time = time
 
-		for segment in self.segments:
-			segment.validate(time)
+		self.segments = {k: reduce(lambda acc, s: s.merge_into(acc), v, {'tagged': [], 'merged': Segment(k, None, [], [], False)}) for k, v in self.segments.items()}
+
+		def filter_empty(v):
+			if len(v.segments) == 0:
+				return []
+			else:
+				return [v]
+
+		self.segments = {k: v['tagged'] + filter_empty(v['merged']) for k, v in self.segments.items()}
+
+		self.segments = dict(sorted(self.segments.items()))
+
+		for sub_time in self.segments:
+			for segment in self.segments[sub_time]:
+				segment.validate(time)
 
 class Time:
 
@@ -208,12 +251,83 @@ class Time:
 
 		return prefix + [Time('PERIOD', (start, end))]
 
+	@classmethod
+	def month_index(cls, month):
+		month_order = [
+			'January', 'February', 'March', 'April',
+			'May', 'June', 'July', 'August',
+			'September', 'October', 'November', 'December'
+		]
+		index = month_order.index(month)
+		return index
+
+	@classmethod
+	def date_value(cls, date):
+		return int(date[:-2])
+
+	@classmethod
+	def weekday_index(cls, weekday):
+		weekday_order = [
+			'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+		]
+		index = weekday_order.index(weekday)
+		return index
+
+	@classmethod
+	def time_minutes(cls, time):
+		if len(time) == 5:
+			assert time[2] == ':'
+			return int(time[:2]) * 60 + int(time[-2:])
+		elif len(time) == 4:
+			assert time[1] == ':'
+			return int(time[:1]) * 60 + int(time[-2:])
+
+		assert False
+
 	def __init__(self, time_type, value):
 		self.type = time_type
 		self.value = value
 
+	def __hash__(self):
+		return hash(self.type + str(self.value))
+
 	def __eq__(self, other):
 		return self.type == other.type and self.value == other.value
+
+	def __lt__(self, other):
+		if self.type != other.type:
+			if self.type == 'PERIOD':
+				return self.value[0][0] < other
+			elif other.type == 'PERIOD':
+				return self < other.value[0][0]
+			else:
+				return self.index() > other.index()
+		else:
+			match self.type:
+				case 'YEAR':
+					if int(self.value) != int(other.value):
+						return int(self.value) < int(other.value)
+				case 'MONTH':
+					if Time.month_index(self.value) != Time.month_index(other.value):
+						return Time.month_index(self.value) < Time.month_index(other.value)
+				case 'DATE':
+					if Time.date_value(self.value) != Time.date_value(other.value):
+						return Time.date_value(self.value) < Time.date_value(other.value)
+				case 'DAY':
+					if Time.weekday_index(self.value) != Time.weekday_index(other.value):
+						return Time.weekday_index(self.value) < Time.weekday_index(other.value)
+				case 'TIME':
+					if Time.time_minutes(self.value) != Time.time_minutes(other.value):
+						return Time.time_minutes(self.value) < Time.time_minutes(other.value)
+				case 'PERIOD':
+					for sv, ov in zip(self.value[0], other.value[0]):
+						if sv < ov:
+							return True
+						if sv > ov:
+							return False
+				case err:
+					print(f'Error: Time.__lt__ not implemented for Time with type of "{err}"')
+					return False
 
 	def index(self):
 		if self.type == 'PERIOD':
