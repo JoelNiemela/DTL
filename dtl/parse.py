@@ -87,7 +87,15 @@ class Parser:
 		if self.lexer.peak().type == 'OPEN':
 			segments = self.parse_segments()
 
-		return ast.Segment(time, desc, segments, [], ongoing)
+		scope_time = time[:-1]
+		time = time[-1]
+
+		segment = ast.Segment([time], desc, segments, [], ongoing)
+
+		for t in reversed(scope_time):
+				segment = ast.Segment([t], None, [segment], [], False)
+
+		return segment
 
 	def parse_cmd(self):
 		cmd = self.lexer.assert_token('CMD')
