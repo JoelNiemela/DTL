@@ -59,9 +59,9 @@ class File:
 
 	def format(self):
 		str = ''
-		if len(self.header_time) > 0:
-			str += f'for {" ".join([t.format() for t in self.header_time])}:\n\n'
-		str += ''.join([segment.format() for segment in reduce(concat, self.segments.values(), [])])
+		if self.header_time.year is not None:
+			str += f'for {self.header_time.format(Time({}))}:\n\n'
+		str += ''.join([segment.format(self.header_time) for segment in reduce(concat, self.segments.values(), [])])
 		return str
 
 	def validate(self, header_time):
@@ -150,27 +150,19 @@ class Segment:
 
 		return segments
 
-	def format(self, tab=0, / , full_time=False):
+	def format(self, scope_time, tab=0):
 		str = '\t' * tab
-		if full_time:
-			str += f'@{" ".join([t.format() for t in self.full_time])}'
-		else:
-			str += f'@{self.time.format()}'
+		str += f'@{self.time.format(scope_time)}'
 		if self.ongoing:
 			str += '...'
 		if self.description != None:
 			str += f' [{self.description}]'
 		str += '\n'
 		str += ''.join([cmd.format(tab+1)  for cmd  in self.commands])
-		str += ''.join([time.format(tab+1) for time in reduce(concat, self.segments.values(), [])])
+		str += ''.join([segment.format(self.time, tab+1) for segment in reduce(concat, self.segments.values(), [])])
 		return str
 
 	def validate(self, scope_time):
-		time = scope_time + [self.time]
-		Time.validate_time(time)
-
-		self.full_time = time
-
 		self.segments = {k: reduce(lambda acc, s: s.merge_into(acc), v, {'tagged': [], 'merged': Segment(k, None, [], [], False)}) for k, v in self.segments.items()}
 
 		def filter_empty(v):
@@ -185,7 +177,7 @@ class Segment:
 
 		for sub_time in self.segments:
 			for segment in self.segments[sub_time]:
-				segment.validate(time)
+				segment.validate(self.time)
 
 class Time:
 
@@ -225,126 +217,142 @@ class Time:
 
 		time = now.strftime('%H:%M')
 
-		return [
-			Time('YEAR', year),
-			Time('MONTH', month),
-			Time('DATE', date),
-			Time('TIME', time)
-		]
+		return Time({'YEAR': year, 'MONTH': month, 'DATE': date, 'TIME': time})
 
 	@classmethod
-	def timespan(cls, start, end):
-		for i in range(len(start)):
-			if start[i].type != end[i].type:
-				end.insert(i, start[i])
-			else:
-				break
-
-		if start == end:
-			return start
-
-		prefix_len = next((i for i, v in enumerate(zip(start, end)) if v[0] != v[1]), min(len(start), len(end)))
-
-		prefix = start[0:prefix_len]
-		del start[0:prefix_len]
-		del   end[0:prefix_len]
-
-		return prefix + [Time('PERIOD', (start, end))]
+	def year_value(cls, value):
+		return int(value)
 
 	@classmethod
-	def month_index(cls, month):
-		month_order = [
+	def month_value(cls, value):
+		months = [
 			'January', 'February', 'March', 'April',
 			'May', 'June', 'July', 'August',
 			'September', 'October', 'November', 'December'
 		]
-		index = month_order.index(month)
-		return index
+
+		if value in months:
+			return months.index(value)
+		else:
+			return -1
 
 	@classmethod
-	def date_value(cls, date):
-		return int(date[:-2])
+	def date_value(cls, value):
+		return int(value[:-2])
 
 	@classmethod
-	def weekday_index(cls, weekday):
-		weekday_order = [
-			'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+	def time_value(cls, value):
+		hour, minutes = value.split(':')
+		return int(minutes) + 60 * int(hour)
+
+	@classmethod
+	def year_str(cls, value):
+		return str(value)
+
+	@classmethod
+	def month_str(cls, value):
+		months = [
+			'January', 'February', 'March', 'April',
+			'May', 'June', 'July', 'August',
+			'September', 'October', 'November', 'December'
 		]
-		index = weekday_order.index(weekday)
-		return index
+
+		return months[value]
 
 	@classmethod
-	def time_minutes(cls, time):
-		if len(time) == 5:
-			assert time[2] == ':'
-			return int(time[:2]) * 60 + int(time[-2:])
-		elif len(time) == 4:
-			assert time[1] == ':'
-			return int(time[:1]) * 60 + int(time[-2:])
+	def date_str(cls, value):
+		if value in [1, 21, 31]:
+			return str(value) + 'st'
+		elif value in [2, 22]:
+			return str(value) + 'nd'
+		elif value in [3, 23]:
+			return str(value) + 'rd'
+		else:
+			return str(value) + 'th'
 
-		assert False
+	@classmethod
+	def time_str(cls, value):
+		time = int(value)
+		minutes = time % 60
+		hour = round((time - minutes)/60)
 
-	def __init__(self, time_type, value):
-		self.type = time_type
-		self.value = value
+		return str(hour) + ':' + str(minutes).zfill(2)
+
+	def __init__(self, values, parent=None):
+		self.year = self.month = self.date = self.time = None
+		if parent:
+			self.year = parent.year
+			self.month = parent.month
+			self.date = parent.date
+			self.time = parent.time
+
+		self.period = False
+		self.end = None
+
+		for time_type, value in values.items():
+			match time_type:
+				case 'YEAR':
+					self.year = Time.year_value(value)
+				case 'MONTH':
+					self.month = Time.month_value(value)
+				case 'DATE':
+					self.date = Time.date_value(value)
+				case 'TIME':
+					self.time = Time.time_value(value)
 
 	def __hash__(self):
-		return hash(self.type + str(self.value))
+		return hash(str((self.year, self.month, self.date, self.time)))
 
 	def __eq__(self, other):
-		return self.type == other.type and self.value == other.value
+		return self.year == other.year and\
+			self.month == other.month and\
+			self.date == other.date and\
+			self.time == other.time
 
 	def __lt__(self, other):
-		if self.type != other.type:
-			if self.type == 'PERIOD':
-				return self.value[0][0] < other
-			elif other.type == 'PERIOD':
-				return self < other.value[0][0]
-			else:
-				return self.index() > other.index()
-		else:
-			match self.type:
-				case 'YEAR':
-					if int(self.value) != int(other.value):
-						return int(self.value) < int(other.value)
-				case 'MONTH':
-					if Time.month_index(self.value) != Time.month_index(other.value):
-						return Time.month_index(self.value) < Time.month_index(other.value)
-				case 'DATE':
-					if Time.date_value(self.value) != Time.date_value(other.value):
-						return Time.date_value(self.value) < Time.date_value(other.value)
-				case 'DAY':
-					if Time.weekday_index(self.value) != Time.weekday_index(other.value):
-						return Time.weekday_index(self.value) < Time.weekday_index(other.value)
-				case 'TIME':
-					if Time.time_minutes(self.value) != Time.time_minutes(other.value):
-						return Time.time_minutes(self.value) < Time.time_minutes(other.value)
-				case 'PERIOD':
-					for sv, ov in zip(self.value[0], other.value[0]):
-						if sv < ov:
-							return True
-						if sv > ov:
-							return False
-				case err:
-					print(f'Error: Time.__lt__ not implemented for Time with type of "{err}"')
-					return False
+		if self.year == None: return True
+		if other.year == None: return False
+		if self.year < other.year: return True
+		if self.year > other.year: return False
 
-	def index(self):
-		if self.type == 'PERIOD':
-			return self.value[0][0].index()
+		if self.month == None: return True
+		if other.month == None: return False
+		if self.month < other.month: return True
+		if self.month > other.month: return False
 
-		time_order = ['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME']
-		index = time_order.index(self.type)
-		return index
+		if self.date == None: return True
+		if other.date == None: return False
+		if self.date < other.date: return True
+		if self.date > other.date: return False
+
+		if self.time == None: return True
+		if other.time == None: return False
+		if self.time < other.time: return True
+		if self.time > other.time: return False
+
+		return False
 
 	def __repr__(self):
-		return 'Time(' + self.type + ', ' + str(self.value) + ')'
+		return 'Time' + str((self.year, self.month, self.date, self.time))
 
-	def format(self):
-		if self.type == 'PERIOD':
-			return ' '.join([t.format() for t in self.value[0]]) + '-' + ' '.join([t.format() for t in self.value[1]])
-		else:
-			return self.value
+	def format(self, scope_time):
+		parts = []
+		if scope_time.year is None and self.year is not None:
+			parts.append(Time.year_str(self.year))
+		if scope_time.month is None and self.month is not None:
+			parts.append(Time.month_str(self.month))
+		if scope_time.date is None and self.date is not None:
+			parts.append(Time.date_str(self.date))
+		if scope_time.time is None and self.time is not None:
+			parts.append(Time.time_str(self.time))
+
+		if self.period and self.end is not None:
+			end = self.end.format(scope_time)
+			return ' '.join(parts) + '-' + end
+		elif self.period:
+			return ' '.join(parts) + '...'
+
+		return ' '.join(parts)
 
 class Cmd:
 	def __init__(self, command, description, options):

@@ -70,7 +70,7 @@ def find_cmd(file_path, args):
 
 	tree = parse_file(file_path)
 
-	print(''.join([f.format(full_time = True) for f in tree.find(description, ongoing=ongoing)]))
+	print(''.join([f.format() for f in tree.find(description, ongoing=ongoing)]))
 
 def add_cmd(file_path, args):
 	require('file', file_path)
@@ -104,7 +104,7 @@ def begin_cmd(file_path, args):
 			print(f'There are already ongoing entries with the name "{description}":')
 
 		print()
-		print(''.join(['\t' + f.format(full_time = True) for f in already_ongoing]))
+		print(''.join(['\t' + f.format() for f in already_ongoing]))
 		exit(0)
 
 	tree.create_entry(ast.Time.now(), description, ongoing = True)
@@ -130,7 +130,7 @@ def end_cmd(file_path, args):
 	elif len(finds) > 1:
 		print(f'There are multiple ongoing entries with the name "{description}":')
 		print()
-		print(''.join(['\t' + f[0].format(full_time = True) for f in finds]))
+		print(''.join(['\t' + f[0].format() for f in finds]))
 		while True:
 			print(f'Which one would you like to end?')
 			index = input(f'[1-{len(finds)}]: ')
@@ -145,7 +145,7 @@ def end_cmd(file_path, args):
 	else:
 		print(f'Currently ongoing entry "{description}":')
 		print()
-		print(''.join(['\t' + f[0].format(full_time = True) for f in finds]))
+		print(''.join(['\t' + f[0].format() for f in finds]))
 		print('Are you sure you want to end this entry?')
 		ans = input('(y/n): ')
 		if ans != 'y':
@@ -156,8 +156,8 @@ def end_cmd(file_path, args):
 	parent.segments = [e for e in parent.segments if e is not segment]
 
 	segment.ongoing = False
-	segment.time = ast.Time.timespan(segment.full_time, ast.Time.now())
-	segment.full_time = None
+	segment.time.period = True
+	segment.time.end = ast.Time.now()
 
 	tree.insert_segment(segment)
 

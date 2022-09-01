@@ -1,13 +1,18 @@
 for 2022:
 
-@August 7th
-	@21:36 [Test]
-	@21:36 [Test]
-	@21:36 [Test]
-	@21:47... [Test]
-@August 7th 21:49-11th 18:01 [T]
-@August 7th 21:36-11th 18:03 [Test]
-@August 11th 18:04... [Kattis2]
-@August 11th 18:04... [Kattis3]
-@August 11th 18:04 [Kattis4]
-@August 11th 18:03-18:04 [Kattis]
+@August
+	@7th
+		!test []
+		@21:36 [Test]
+		@21:36 [Test]
+		@21:36 [Test]
+		!test []
+		@21:47... [Test]
+	@7th 24:00 [Test]
+	@7th 21:36-11th 18:03 [Test]
+	@7th 21:49-11th 18:01 [T]
+	@11th
+		@18:03-18:04 [Kattis]
+		@18:04... [Kattis2]
+		@18:04... [Kattis3]
+		@18:04 [Kattis4]
