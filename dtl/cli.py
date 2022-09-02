@@ -107,7 +107,10 @@ def begin_cmd(file_path, args):
 
 		print()
 		print(''.join(['\t' + f.format(ast.Time({})) for f in already_ongoing]))
-		exit(0)
+		print('Are you sure you want to create another entry?')
+		ans = input('(y/n): ')
+		if ans != 'y':
+			exit(0)
 
 	tree.insert_segment(ast.Segment(ast.Time.now(), description, ongoing = True))
 
