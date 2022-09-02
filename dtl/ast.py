@@ -18,38 +18,14 @@ class File:
 
 		return finds
 
-	def create_entry(self, time, description, ongoing=False):
-		sub_time = Time.remove_prefix(self.header_time, time)
-
-		if sub_time == False or sub_time == []:
-			return False
-
-		for segment in self.segments:
-			if segment.create_entry(sub_time, description, ongoing=ongoing):
-				return True
-
-		scope_time = sub_time[:-1]
-		seg_time = sub_time[-1]
-
-		segment = Segment(seg_time, description, [], [], ongoing)
-
-		for t in reversed(scope_time):
-			segment = Segment(t, None, [segment], [], False)
-
-		self.segments[segment.time].append(segment)
-		return True
-
 	def insert_segment(self, segment):
-		time = Time.remove_prefix(self.header_time, segment.time)
-
-		if time == False or time == []:
+		if not self.header_time.contains(segment.time):
 			return False
 
-		segment.time = time
-
-		for seg in self.segments:
-			if seg.insert_segment(segment):
-				return True
+		for sub_time in self.segments.keys():
+			for seg in self.segments[sub_time]:
+				if seg.insert_segment(segment):
+					return True
 
 		self.segments[segment.time].append(segment)
 		return True
@@ -65,7 +41,7 @@ class File:
 		return str
 
 	def validate(self, header_time):
-		self.segments = {k: reduce(lambda acc, s: s.merge_into(acc), v, {'tagged': [], 'merged': Segment(k, None, [], [], False)}) for k, v in self.segments.items()}
+		self.segments = defaultdict(list, {k: reduce(lambda acc, s: s.merge_into(acc), v, {'tagged': [], 'merged': Segment(k, None, [], [], False)}) for k, v in self.segments.items()})
 
 		def filter_empty(v):
 			if len(v.segments) == 0:
@@ -73,14 +49,14 @@ class File:
 			else:
 				return [v]
 
-		self.segments = {k: v['tagged'] + filter_empty(v['merged']) for k, v in self.segments.items()}
+		self.segments = defaultdict(list, {k: v['tagged'] + filter_empty(v['merged']) for k, v in self.segments.items()})
 
 		for sub_time in self.segments.keys():
 			for segment in self.segments[sub_time]:
 				segment.validate(header_time)
 
 class Segment:
-	def __init__(self, time, description, segments, commands, ongoing):
+	def __init__(self, time, description, segments=[], commands=[], ongoing=False):
 		self.time = time
 		self.description = description
 
@@ -103,37 +79,26 @@ class Segment:
 			segment.find(description, finds, ongoing=ongoing, with_parent=with_parent, parent_ref=self)
 
 	def create_entry(self, time, description, ongoing=False):
-		sub_time = Time.remove_prefix(self.time, time)
-
-		if sub_time == False or sub_time == []:
+		if not self.time.contains(time):
 			return False
 
 		for segment in self.segments.items():
-			if segment.create_entry(sub_time, description, ongoing=ongoing):
+			if segment.create_entry(time, description, ongoing=ongoing):
 				return True
 
-		scope_time = sub_time[:-1]
-		seg_time = sub_time[-1]
-
-		segment = Segment(seg_time, description, [], [], ongoing)
-
-		for t in reversed(scope_time):
-			segment = Segment(t, None, [segment], [], False)
+		segment = Segment(time, description, [], [], ongoing)
 
 		self.segments[segment.time].append(segment)
 		return True
 
 	def insert_segment(self, segment):
-		time = Time.remove_prefix(self.time, segment.time)
-
-		if time == False or time == []:
+		if not self.time.contains(segment.time):
 			return False
 
-		segment.time = time
-
-		for seg in self.segments:
-			if seg.insert_segment(segment):
-				return True
+		for sub_time in self.segments.keys():
+			for seg in self.segments[sub_time]:
+				if seg.insert_segment(segment):
+					return True
 
 		self.segments[segment.time].append(segment)
 		return True
@@ -163,7 +128,7 @@ class Segment:
 		return str
 
 	def validate(self, scope_time):
-		self.segments = {k: reduce(lambda acc, s: s.merge_into(acc), v, {'tagged': [], 'merged': Segment(k, None, [], [], False)}) for k, v in self.segments.items()}
+		self.segments = defaultdict(list, {k: reduce(lambda acc, s: s.merge_into(acc), v, {'tagged': [], 'merged': Segment(k, None, [], [], False)}) for k, v in self.segments.items()})
 
 		def filter_empty(v):
 			if len(v.segments) == 0:
@@ -171,9 +136,9 @@ class Segment:
 			else:
 				return [v]
 
-		self.segments = {k: v['tagged'] + filter_empty(v['merged']) for k, v in self.segments.items()}
+		self.segments = defaultdict(list, {k: v['tagged'] + filter_empty(v['merged']) for k, v in self.segments.items()})
 
-		self.segments = dict(sorted(self.segments.items()))
+		self.segments = defaultdict(list, dict(sorted(self.segments.items())))
 
 		for sub_time in self.segments:
 			for segment in self.segments[sub_time]:
@@ -334,6 +299,25 @@ class Time:
 
 	def __repr__(self):
 		return 'Time' + str((self.year, self.month, self.date, self.time))
+
+	def contains(self, other):
+		time_list = [self.year, self.month, self.date, self.time]
+		other_time_list = [other.year, other.month, other.date, other.time]
+
+		for t, o in zip(time_list, other_time_list):
+			if o is None:
+				print(self, "doesn't contain (1)", other)
+				return False
+			if t is None:
+				print(self, "contains", other)
+				return True
+
+			if t != o:
+				print(self, "doesn't contain (2)", other)
+				return False
+
+		print(self, "doesn't contain (3)", other)
+		return False
 
 	def format(self, scope_time):
 		parts = []

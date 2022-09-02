@@ -4,6 +4,7 @@ import sys
 
 from dtl.parse import Parser
 from dtl import ast
+from collections import defaultdict
 
 VERSION = 'v0.1.4-alpha'
 
@@ -81,7 +82,8 @@ def add_cmd(file_path, args):
 
 	tree = parse_file(file_path)
 
-	tree.create_entry(ast.Time.now(), description)
+	print(ast.Time.now())
+	tree.insert_segment(ast.Segment(ast.Time.now(), description))
 
 	print(tree.format())
 
@@ -107,7 +109,7 @@ def begin_cmd(file_path, args):
 		print(''.join(['\t' + f.format() for f in already_ongoing]))
 		exit(0)
 
-	tree.create_entry(ast.Time.now(), description, ongoing = True)
+	tree.insert_segment(ast.Segment(ast.Time.now(), description, ongoing = True))
 
 	print(tree.format())
 
@@ -153,7 +155,7 @@ def end_cmd(file_path, args):
 
 		segment, parent = finds[0]
 
-	parent.segments = [e for e in parent.segments if e is not segment]
+	parent.segments = defaultdict(list, {e.time: e for e in parent.segments if e is not segment})
 
 	segment.ongoing = False
 	segment.time.period = True
