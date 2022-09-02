@@ -71,7 +71,7 @@ def find_cmd(file_path, args):
 
 	tree = parse_file(file_path)
 
-	print(''.join([f.format() for f in tree.find(description, ongoing=ongoing)]))
+	print(''.join([f.format(ast.Time({})) for f in tree.find(description, ongoing=ongoing)]))
 
 def add_cmd(file_path, args):
 	require('file', file_path)

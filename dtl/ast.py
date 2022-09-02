@@ -13,8 +13,9 @@ class File:
 
 	def find(self, description, ongoing=None, with_parent=False):
 		finds = []
-		for segment in self.segments:
-			segment.find(description, finds, ongoing=ongoing, with_parent=with_parent, parent_ref=self)
+		for sub_time in self.segments.keys():
+			for segment in self.segments[sub_time]:
+				segment.find(description, finds, ongoing=ongoing, with_parent=with_parent, parent_ref=self)
 
 		return finds
 
@@ -75,8 +76,9 @@ class Segment:
 				else:
 					finds.append(self)
 
-		for segment in self.segments:
-			segment.find(description, finds, ongoing=ongoing, with_parent=with_parent, parent_ref=self)
+		for sub_time in self.segments.keys():
+			for segment in self.segments[sub_time]:
+				segment.find(description, finds, ongoing=ongoing, with_parent=with_parent, parent_ref=self)
 
 	def create_entry(self, time, description, ongoing=False):
 		if not self.time.contains(time):
@@ -305,18 +307,11 @@ class Time:
 		other_time_list = [other.year, other.month, other.date, other.time]
 
 		for t, o in zip(time_list, other_time_list):
-			if o is None:
-				print(self, "doesn't contain (1)", other)
-				return False
-			if t is None:
-				print(self, "contains", other)
-				return True
+			if o is None: return False
+			if t is None: return True
 
-			if t != o:
-				print(self, "doesn't contain (2)", other)
-				return False
+			if t != o: return False
 
-		print(self, "doesn't contain (3)", other)
 		return False
 
 	def format(self, scope_time):
