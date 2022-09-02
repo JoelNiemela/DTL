@@ -106,7 +106,7 @@ def begin_cmd(file_path, args):
 			print(f'There are already ongoing entries with the name "{description}":')
 
 		print()
-		print(''.join(['\t' + f.format() for f in already_ongoing]))
+		print(''.join(['\t' + f.format(ast.Time({})) for f in already_ongoing]))
 		exit(0)
 
 	tree.insert_segment(ast.Segment(ast.Time.now(), description, ongoing = True))
@@ -132,7 +132,7 @@ def end_cmd(file_path, args):
 	elif len(finds) > 1:
 		print(f'There are multiple ongoing entries with the name "{description}":')
 		print()
-		print(''.join(['\t' + f[0].format() for f in finds]))
+		print(''.join(['\t' + f[0].format(ast.Time({})) for f in finds]))
 		while True:
 			print(f'Which one would you like to end?')
 			index = input(f'[1-{len(finds)}]: ')
@@ -147,7 +147,7 @@ def end_cmd(file_path, args):
 	else:
 		print(f'Currently ongoing entry "{description}":')
 		print()
-		print(''.join(['\t' + f[0].format() for f in finds]))
+		print(''.join(['\t' + f[0].format(ast.Time({})) for f in finds]))
 		print('Are you sure you want to end this entry?')
 		ans = input('(y/n): ')
 		if ans != 'y':
@@ -155,7 +155,13 @@ def end_cmd(file_path, args):
 
 		segment, parent = finds[0]
 
-	parent.segments = defaultdict(list, {e.time: e for e in parent.segments if e is not segment})
+	parent_segments = defaultdict(list)
+	for sub_time in parent.segments.keys():
+		for seg in parent.segments[sub_time]:
+			if seg is not segment:
+				parent_segments[sub_time].append(seg)
+
+	parent.segments = parent_segments
 
 	segment.ongoing = False
 	segment.time.period = True
