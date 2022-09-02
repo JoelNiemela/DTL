@@ -6,7 +6,7 @@ from dtl.parse import Parser
 from dtl import ast
 from collections import defaultdict
 
-VERSION = 'v0.1.4-alpha'
+VERSION = 'v0.1.5-alpha'
 
 def assert_argc(args, count):
 	if len(args) < count:
