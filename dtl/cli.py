@@ -5,11 +5,14 @@ import os
 
 from dtl.parse import Parser
 from dtl import ast
+from dtl.config import load_config
+
 from collections import defaultdict
 
 VERSION = 'v0.1.6-alpha'
 
-DTL_dir = os.path.expanduser('~/.DTL/')
+config = load_config(os.path.expanduser('~/.config/DTL/config.ini'))
+DTL_dir = config['DTL_dir']
 
 def assert_argc(args, count):
 	if len(args) < count:
