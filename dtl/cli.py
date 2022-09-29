@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
 import sys
+import os
 
 from dtl.parse import Parser
 from dtl import ast
 from collections import defaultdict
 
 VERSION = 'v0.1.6-alpha'
+
+DTL_dir = os.path.expanduser('~/.DTL/')
 
 def assert_argc(args, count):
 	if len(args) < count:
@@ -21,13 +24,22 @@ def require(name, value):
 		print(f'Error: argument "{name}" is required')
 		exit(1)
 
+def absoltue_path(file_path):
+	if file_path is None:
+		return None
+
+	if len(file_path) > 0 and file_path[0] == '@':
+		return f'{DTL_dir}/{file_path[1:]}.dtl'
+
+	return file_path
+
 def parse_file(file_path):
 	require('file', file_path)
 
 	parser = Parser(debug = False)
 
 	try:
-		with open(file_path, 'r') as file:
+		with open(absoltue_path(file_path), 'r') as file:
 			tree = parser.parse(file.read())
 	except FileNotFoundError:
 		print(f'Error: can\'t find file "{file_path}"')
@@ -38,7 +50,7 @@ def parse_file(file_path):
 def write_file(file_path, tree):
 	require('file', file_path)
 
-	with open(file_path, 'w') as file:
+	with open(absoltue_path(file_path), 'w') as file:
 		file.write(tree.format())
 
 def parse_cmd(file_path, args):
