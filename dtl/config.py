@@ -3,7 +3,7 @@ import os
 
 def load_config(config_path):
 	config = configparser.ConfigParser()
-	config.read(config_path)
+	config.read(config_path, encoding='utf-8')
 
 	if not config.has_section('DTL'):
 		config.add_section('DTL')
