@@ -52,6 +52,8 @@ class File:
 
 		self.segments = defaultdict(list, {k: v['tagged'] + filter_empty(v['merged']) for k, v in self.segments.items()})
 
+		self.segments = defaultdict(list, dict(sorted(self.segments.items())))
+
 		for sub_time in self.segments.keys():
 			for segment in self.segments[sub_time]:
 				segment.validate(header_time)
