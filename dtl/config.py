@@ -1,7 +1,7 @@
 import configparser
 import os
 
-def load_config(config_path):
+def load_config(config_path: str) -> dict[str, str]:
 	config = configparser.ConfigParser()
 	config.read(config_path, encoding='utf-8')
 
