@@ -224,6 +224,9 @@ def help_cmd(file=None, cmd=None, args=[]):
 		case 'end':
 			print('dtl [file] end [description]\n')
 			print('\tCloses an ongoing entry in the given file with the given description.')
+		case 'create':
+			print('dtl [file] create\n')
+			print('\tCreates the file <file>. Useful for creating files in the DTL_dir directory.')
 		case None:
 			print(f'DTL {VERSION}')
 			print()
@@ -243,6 +246,8 @@ def help_cmd(file=None, cmd=None, args=[]):
 			print('\t\tSame as dtl add, but marks the entry as ongoing.\n')
 			print('\tdtl [file] end [description]')
 			print('\t\tCloses an ongoing entry in the given file with the given description.\n')
+			print('\tdtl [file] create')
+			print('\t\tCreates the file <file>. Useful for creating files in the DTL_dir directory.')
 			print()
 			print('Flags:')
 			print('\t--help')
