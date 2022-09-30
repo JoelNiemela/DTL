@@ -4,10 +4,10 @@ import dtl.ast as ast
 from functools import partial
 
 class Parser:
-	def __init__(self, debug=False):
+	def __init__(self, debug: bool = False) -> None:
 		self.lexer = Lexer(debug=debug)
 
-	def parse(self, src):
+	def parse(self, src: str) -> ast.File:
 		self.lexer.tokenize(src)
 
 		header_time_tokens = {}
@@ -32,7 +32,7 @@ class Parser:
 
 		return tree
 
-	def parse_block(self, fn):
+	def parse_block(self, fn) -> list:
 		self.lexer.assert_token('OPEN')
 
 		ln = []
@@ -43,10 +43,10 @@ class Parser:
 
 		return ln
 
-	def parse_attributes(self, parent_time):
+	def parse_attributes(self, parent_time: ast.Time) -> list:
 		return self.parse_block(partial(self.parse_attribute, parent_time))
 
-	def parse_attribute(self, parent_time):
+	def parse_attribute(self, parent_time: ast.Time) -> ast.Segment|ast.Cmd|None:
 		match self.lexer.peak().type:
 			case 'AT':
 				return self.parse_time(parent_time)
@@ -56,7 +56,7 @@ class Parser:
 				print(f'Error: expected CMD, AT, found {err}')
 				return None
 
-	def parse_time(self, parent_time):
+	def parse_time(self, parent_time: ast.Time) -> ast.Segment:
 		self.lexer.assert_token('AT')
 		time_tokens = [self.lexer.assert_token(['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME'])]
 		while self.lexer.peak().type in ['YEAR', 'MONTH', 'DATE', 'DAY', 'TIME']:
@@ -99,7 +99,7 @@ class Parser:
 
 		return segment
 
-	def parse_cmd(self):
+	def parse_cmd(self) -> ast.Cmd:
 		cmd = self.lexer.assert_token('CMD')
 
 		desc = self.lexer.assert_token('DESC')
@@ -113,10 +113,10 @@ class Parser:
 
 		return ast.Cmd(cmd.value, desc.value, options)
 
-	def parse_options(self):
+	def parse_options(self) -> list:
 		return self.parse_block(self.parse_option)
 
-	def parse_option(self):
+	def parse_option(self) -> ast.Option:
 		option = self.lexer.assert_token('OPTION')
 
 		match self.lexer.peak().type:
