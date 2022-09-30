@@ -70,3 +70,10 @@ pip install .
 ```
 
 Note: you might have to use `sudo -H pip install .` if you want to install DTL to `/usr/bin`.
+
+## Configuration
+To configure DTL, create the file `~/.config/DTL/config.ini`.
+
+### DTL config syntax:
+`config.ini` is a `ini` file with the section `[DTL]`. The following properties are allowed:
+- `DTL_dir`: The directory DTL will look for when trying to open files with the syntax `@<filename>`. Default value: `~/.DTL/`
