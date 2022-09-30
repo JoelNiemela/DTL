@@ -189,6 +189,18 @@ def end_cmd(file_path, args):
 
 	write_file(file_path, tree)
 
+def create_cmd(file_path, args):
+	require('file', file_path)
+
+	real_path = absoltue_path(file_path)
+
+	if os.path.exists(real_path):
+		print(f'Error: file "{file_path}" already exists.')
+		exit(1)
+	else:
+		with open(real_path, 'w', encoding='utf-8'):
+			pass
+
 def help_cmd(file=None, cmd=None, args=[]):
 	match cmd:
 		case 'parse':
@@ -212,6 +224,9 @@ def help_cmd(file=None, cmd=None, args=[]):
 		case 'end':
 			print('dtl [file] end [description]\n')
 			print('\tCloses an ongoing entry in the given file with the given description.')
+		case 'create':
+			print('dtl [file] create\n')
+			print('\tCreates the file <file>. Useful for creating files in the DTL_dir directory.')
 		case None:
 			print(f'DTL {VERSION}')
 			print()
@@ -231,6 +246,8 @@ def help_cmd(file=None, cmd=None, args=[]):
 			print('\t\tSame as dtl add, but marks the entry as ongoing.\n')
 			print('\tdtl [file] end [description]')
 			print('\t\tCloses an ongoing entry in the given file with the given description.\n')
+			print('\tdtl [file] create')
+			print('\t\tCreates the file <file>. Useful for creating files in the DTL_dir directory.')
 			print()
 			print('Flags:')
 			print('\t--help')
@@ -275,6 +292,8 @@ def main():
 			begin_cmd(file, args)
 		case 'end':
 			end_cmd(file, args)
+		case 'create':
+			create_cmd(file, args)
 		case _:
 			help_cmd(file, cmd, args)
 

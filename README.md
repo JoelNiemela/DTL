@@ -58,6 +58,8 @@ The DTL command line interface can be used to automatically record tasks into a 
    - Same as `dtl add`, but marks the entry as ongoing.
  - `dtl [file] end [description]`\*
    - Closes an ongoing entry in the given file with the given description.
+ - `dtl [file] create`
+   - Creates the file <file>. Useful for creating files in the DTL_dir directory.
 
 \*partial support
 
