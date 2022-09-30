@@ -189,6 +189,18 @@ def end_cmd(file_path, args):
 
 	write_file(file_path, tree)
 
+def create_cmd(file_path, args):
+	require('file', file_path)
+
+	real_path = absoltue_path(file_path)
+
+	if os.path.exists(real_path):
+		print(f'Error: file "{file_path}" already exists.')
+		exit(1)
+	else:
+		with open(real_path, 'w', encoding='utf-8'):
+			pass
+
 def help_cmd(file=None, cmd=None, args=[]):
 	match cmd:
 		case 'parse':
@@ -275,6 +287,8 @@ def main():
 			begin_cmd(file, args)
 		case 'end':
 			end_cmd(file, args)
+		case 'create':
+			create_cmd(file, args)
 		case _:
 			help_cmd(file, cmd, args)
 
