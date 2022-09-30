@@ -3,16 +3,16 @@ import re
 from collections import deque
 
 class Token:
-	def __init__(self, tok_type, value=None):
+	def __init__(self, tok_type: str, value = None) -> None:
 		self.type = tok_type
 		self.value = value
 
 class Lexer:
-	def __init__(self, debug=False):
+	def __init__(self, debug: str = False) -> None:
 		self.tokens = deque()
 		self.debug = debug
 
-	def tokenize(self, src):
+	def tokenize(self, src: str) -> None:
 		types = {
 			'AT'       : r'@',
 			'YEAR'     : r'\d{4}',
@@ -92,13 +92,13 @@ class Lexer:
 		if self.debug:
 			print(' '.join([t.type for t in self.tokens]))
 
-	def peak(self):
+	def peak(self) -> Token:
 		if len(self.tokens) > 0:
 			return self.tokens[0]
 		else:
 			return Token('EOF')
 
-	def pop(self):
+	def pop(self) -> Token:
 		if self.debug:
 			print(self.peak().type)
 
@@ -107,7 +107,7 @@ class Lexer:
 		else:
 			return Token('EOF')
 
-	def assert_token(self, tok_t):
+	def assert_token(self, tok_t: str) -> Token|None:
 		if not isinstance(tok_t, list):
 			tok_t = [tok_t]
 
