@@ -14,7 +14,7 @@ VERSION = 'v0.1.6-alpha'
 config = load_config(os.path.expanduser('~/.config/DTL/config.ini'))
 DTL_dir = config['DTL_dir']
 
-def assert_argc(args, count):
+def assert_argc(args: list[str], count: int) -> None:
 	if len(args) < count:
 		if count == 1:
 			print('Error: expected an argument')
@@ -22,27 +22,24 @@ def assert_argc(args, count):
 			print(f'Error: expected {count} arguments')
 		exit(1)
 
-def require(name, value):
-	if value == None:
+def require(name: str, value) -> None:
+	if value is None:
 		print(f'Error: argument "{name}" is required')
 		exit(1)
 
-def absoltue_path(file_path):
-	if file_path is None:
-		return None
-
+def absolute_path(file_path: str) -> str:
 	if len(file_path) > 0 and file_path[0] == '@':
 		return f'{DTL_dir}/{file_path[1:]}.dtl'
 
 	return file_path
 
-def parse_file(file_path):
+def parse_file(file_path: str|None) -> ast.File:
 	require('file', file_path)
 
 	parser = Parser(debug = False)
 
 	try:
-		with open(absoltue_path(file_path), 'r') as file:
+		with open(absolute_path(file_path), 'r') as file:
 			tree = parser.parse(file.read())
 	except FileNotFoundError:
 		print(f'Error: can\'t find file "{file_path}"')
@@ -50,26 +47,26 @@ def parse_file(file_path):
 
 	return tree
 
-def write_file(file_path, tree):
+def write_file(file_path: str|None, tree: ast.File) -> None:
 	require('file', file_path)
 
-	with open(absoltue_path(file_path), 'w') as file:
+	with open(absolute_path(file_path), 'w') as file:
 		file.write(tree.format())
 
-def parse_cmd(file_path, args):
+def parse_cmd(file_path: str|None, args: list[str]) -> None:
 	require('file', file_path)
 
 	print(parse_file(file_path))
 	print(parse_file(file_path).format())
 
-def format_cmd(file_path, args):
+def format_cmd(file_path: str|None, args: list[str]) -> None:
 	require('file', file_path)
 
 	tree = parse_file(file_path)
 
 	write_file(file_path, tree)
 
-def find_cmd(file_path, args):
+def find_cmd(file_path: str|None, args: list[str]) -> None:
 	require('file', file_path)
 
 	assert_argc(args, 1)
@@ -88,7 +85,7 @@ def find_cmd(file_path, args):
 
 	print(''.join([f.format(ast.Time({})) for f in tree.find(description, ongoing=ongoing)]))
 
-def add_cmd(file_path, args):
+def add_cmd(file_path: str|None, args: list[str]) -> None:
 	require('file', file_path)
 
 	assert_argc(args, 1)
@@ -104,7 +101,7 @@ def add_cmd(file_path, args):
 
 	write_file(file_path, tree)
 
-def begin_cmd(file_path, args):
+def begin_cmd(file_path: str|None, args: list[str]) -> None:
 	require('file', file_path)
 
 	assert_argc(args, 1)
@@ -133,7 +130,7 @@ def begin_cmd(file_path, args):
 
 	write_file(file_path, tree)
 
-def end_cmd(file_path, args):
+def end_cmd(file_path: str|None, args: list[str]) -> None:
 	require('file', file_path)
 
 	assert_argc(args, 1)
@@ -189,10 +186,10 @@ def end_cmd(file_path, args):
 
 	write_file(file_path, tree)
 
-def create_cmd(file_path, args):
+def create_cmd(file_path: str|None, args: list[str]) -> None:
 	require('file', file_path)
 
-	real_path = absoltue_path(file_path)
+	real_path = absolute_path(file_path)
 
 	if os.path.exists(real_path):
 		print(f'Error: file "{file_path}" already exists.')
@@ -201,7 +198,7 @@ def create_cmd(file_path, args):
 		with open(real_path, 'w', encoding='utf-8'):
 			pass
 
-def help_cmd(file=None, cmd=None, args=[]):
+def help_cmd(file: str|None, cmd: str|None, args: list[str]) -> None:
 	match cmd:
 		case 'parse':
 			print('dtl [file] parse\n')
@@ -257,7 +254,7 @@ def help_cmd(file=None, cmd=None, args=[]):
 		case _:
 			print(f'Unknown command "{cmd}". Type "dtl --help" for a list of commands.')
 
-def main():
+def main() -> None:
 	flags    = [flag.lstrip('-') for flag in sys.argv[1:] if flag[0] == '-']
 	commands = [cmd              for cmd  in sys.argv[1:] if  cmd[0] != '-']
 
