@@ -4,8 +4,9 @@ from sortedcontainers import SortedDict
 
 class DTL:
     def __init__(self, header_time: Time, entries: list[Entry]):
-        self.entries = SortedDict()
+        self.header_time = header_time
 
+        self.entries = SortedDict()
         for entry in entries:
             time = entry.time.copy()
 
