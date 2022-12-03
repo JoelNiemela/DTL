@@ -1,7 +1,21 @@
 from __future__ import annotations
 
+from sortedcontainers import SortedDict
+
 class DTL:
-    def __init__(self, header_time: Time):
+    def __init__(self, header_time: Time, entries: list[Entry]):
+        self.entries = SortedDict()
+
+        for entry in entries:
+            time = entry.time.copy()
+
+            if time not in self.entries:
+                self.entries[time] = []
+
+            self.entries[time].append(entry)
+
+class Entry:
+    def __init__(self):
         pass
 
 class Time:
@@ -10,6 +24,9 @@ class Time:
         self.month = month
         self.date = date
         self.time = time
+
+    def copy(self):
+        return Time(self.year, self.month, self.date, self.time)
 
     def __lt__(self, other):
         if self.year != other.year:
