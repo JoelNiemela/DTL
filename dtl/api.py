@@ -4,48 +4,48 @@ from sortedcontainers import SortedDict
 
 class DTL:
     def __init__(self, header_time: Time, entries: list[Entry]):
-        self.header_time = header_time
+        self._header_time = header_time
 
-        self.entries = SortedDict()
+        self._entries = SortedDict()
         for entry in entries:
             time = entry.time.copy()
 
-            if time not in self.entries:
-                self.entries[time] = []
+            if time not in self._entries:
+                self._entries[time] = []
 
-            self.entries[time].append(entry)
+            self._entries[time].append(entry)
 
 class Entry:
     def __init__(self, time: Time, description: str, entries: list[Entry]):
-        self.time = time
-        self.description = description
+        self._time = time
+        self._description = description
 
-        self.entries = SortedDict()
+        self._entries = SortedDict()
         for entry in entries:
             time = entry.time.copy()
-            if time not in self.entries:
-                self.entries[time] = []
+            if time not in self._entries:
+                self._entries[time] = []
 
-            self.entries[time].append(entry)
+            self._entries[time].append(entry)
 
 class Time:
     def __init__(self, year, month, date, time):
-        self.year = year
-        self.month = month
-        self.date = date
-        self.time = time
+        self._year = year
+        self._month = month
+        self._date = date
+        self._time = time
 
     def copy(self):
-        return Time(self.year, self.month, self.date, self.time)
+        return Time(self._year, self._month, self._date, self._time)
 
     def __lt__(self, other):
-        if self.year != other.year:
-            return self.year < other.year
-        if self.month != other.month:
-            return self.month < other.month
-        if self.date != other.date:
-            return self.date < other.date
-        if self.time != other.time:
-            return self.time < other.time
+        if self._year != other.year:
+            return self._year < other.year
+        if self._month != other.month:
+            return self._month < other.month
+        if self._date != other.date:
+            return self._date < other.date
+        if self._time != other.time:
+            return self._time < other.time
 
         return False
