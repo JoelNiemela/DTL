@@ -15,8 +15,17 @@ class DTL:
             self.entries[time].append(entry)
 
 class Entry:
-    def __init__(self):
-        pass
+    def __init__(self, time: Time, description: str, entries: list[Entry]):
+        self.time = time
+        self.description = description
+
+        self.entries = SortedDict()
+        for entry in entries:
+            time = entry.time.copy()
+            if time not in self.entries:
+                self.entries[time] = []
+
+            self.entries[time].append(entry)
 
 class Time:
     def __init__(self, year, month, date, time):
