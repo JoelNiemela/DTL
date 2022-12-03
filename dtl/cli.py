@@ -9,7 +9,7 @@ from dtl.config import load_config
 
 from collections import defaultdict
 
-VERSION = 'v0.1.6-alpha'
+VERSION = 'v0.1.7-alpha'
 
 config = load_config(os.path.expanduser('~/.config/DTL/config.ini'))
 DTL_dir = config['DTL_dir']
