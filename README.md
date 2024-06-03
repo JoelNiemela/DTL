@@ -1,8 +1,8 @@
 # DTL
-DTL — or Declarative Time Language — is a language used to describe a time period, which can be used to automate different tasks.
+DTL — or Declarative Time Logger — is a logging tool used to describe a time period, which can be used to automate different tasks.
 
 ## DTL Syntax
-DTL is an indentation based language. This means that whitespace is semantically important in DTL.
+DTL uses an indentation based format. This means that whitespace is semantically important in DTL.
 
 A DTL file consists of a list of segments. A segment consists of a time or timeperiod, and optionally also a description and a list of nested segments and commands.
 
