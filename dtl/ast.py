@@ -151,7 +151,6 @@ class Segment:
                 segment.validate(self.time)
 
 class Time:
-
     @classmethod
     def validate_time(cls, time) -> None:
         if not all([time[i].index() < time[i+1].index() for i in range(len(time)-1)]):
@@ -305,6 +304,12 @@ class Time:
 
     def __repr__(self) -> str:
         return 'Time' + str((self.year, self.month, self.date, self.time))
+
+    def interval(self) -> int:
+        start: datetime = datetime(self.year, self.month, self.date, self.time//60, self.time%60, 0)
+        end: datetime = datetime(self.end.year, self.end.month, self.end.date, self.end.time//60, self.end.time%60, 0)
+
+        return int(end.timestamp() - start.timestamp()) // 60
 
     def contains(self, other: Time) -> bool:
         time_list = [self.year, self.month, self.date, self.time]
