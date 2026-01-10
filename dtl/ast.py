@@ -83,7 +83,7 @@ class Segment:
         self.commands = commands
         self.ongoing = ongoing
 
-    def find(self, description: str, finds, ongoing: bool|None = None, with_parent: bool = False, parent_ref = None) -> None:
+    def find(self, description: str, finds, ongoing: bool | None = None, with_parent: bool = False, parent_ref = None) -> None:
         if description == self.description:
             if ongoing == self.ongoing or ongoing is None:
                 if with_parent:
@@ -134,16 +134,16 @@ class Segment:
         return segments
 
     def format(self, scope_time: Time, tab: int = 0) -> str:
-        str = '\t' * tab
-        str += f'@{self.time.format(scope_time)}'
+        fstr = '\t' * tab
+        fstr += f'@{self.time.format(scope_time)}'
         if self.ongoing:
-            str += '...'
+            fstr += '...'
         if self.description != None:
-            str += f' [{self.description}]'
-        str += '\n'
-        str += ''.join([cmd.format(tab+1)  for cmd  in self.commands])
-        str += ''.join([segment.format(self.time, tab+1) for segment in reduce(concat, self.segments.values(), [])])
-        return str
+            fstr += f' [{self.description}]'
+        fstr += '\n'
+        fstr += ''.join([cmd.format(tab+1)  for cmd  in self.commands])
+        fstr += ''.join([segment.format(self.time, tab+1) for segment in reduce(concat, self.segments.values(), [])])
+        return fstr
 
     def validate(self, scope_time: Time) -> None:
         self.segments = defaultdict(list, {k: reduce(lambda acc, s: s.merge_into(acc), v, {'tagged': [], 'merged': Segment(k, None, [], [], False)}) for k, v in self.segments.items()})
@@ -355,7 +355,7 @@ class Time:
         return ' '.join(parts)
 
 class Cmd:
-    def __init__(self, command: str, description: str, options: list):
+    def __init__(self, command: str, description: str, options: list[Option]) -> None:
         self.command = command
         self.description = description
         self.options = options
@@ -370,16 +370,16 @@ class Cmd:
         return 'Cmd(' + self.command + ', ' + self.description + ', ' + str(self.options) + ')'
 
     def format(self, tab: int = 0) -> str:
-        str = '\t' * tab
-        str += f'{self.command} [{self.description}]\n'
-        str += ''.join([option.format(tab+1) for option in self.options])
-        return str
+        fstr = '\t' * tab
+        fstr += f'{self.command} [{self.description}]\n'
+        fstr += ''.join([option.format(tab+1) for option in self.options])
+        return fstr
 
     def validate(self, time: Time) -> None:
         return None
 
 class Option:
-    def __init__(self, name: str, value: str):
+    def __init__(self, name: str, value: str) -> None:
         self.name = name
         self.value = value
 
@@ -387,6 +387,6 @@ class Option:
         return 'Option(' + self.name + ', ' + self.value + ')'
 
     def format(self, tab: int = 0) -> str:
-        str = '\t' * tab
-        str += f'{self.name} {self.value}\n'
-        return str
+        fstr = '\t' * tab
+        fstr += f'{self.name} {self.value}\n'
+        return fstr

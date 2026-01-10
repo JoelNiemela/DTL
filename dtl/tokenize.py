@@ -1,9 +1,11 @@
 import re
 
+from dtl.parse import ParseError
+
 from collections import deque
 
 class Token:
-    def __init__(self, tok_type: str, value = None) -> None:
+    def __init__(self, tok_type: str, value: str | None = None) -> None:
         self.type = tok_type
         self.value = value
 
@@ -106,7 +108,7 @@ class Lexer:
         else:
             return Token('EOF')
 
-    def assert_token(self, tok_t: str | list[str]) -> Token|None:
+    def assert_token(self, tok_t: str | list[str]) -> Token:
         if not isinstance(tok_t, list):
             tok_t = [tok_t]
 
@@ -114,6 +116,6 @@ class Lexer:
 
         if not token.type in tok_t:
             print(f'Error: expected {", ".join(tok_t)}, found {token.type}')
-            return None
+            raise ParseError(f'Error: expected {", ".join(tok_t)}, found {token.type}')
         else:
             return self.pop()
