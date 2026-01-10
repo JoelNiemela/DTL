@@ -202,7 +202,7 @@ class Time:
         ]
 
         if value in months:
-            return months.index(value)
+            return months.index(value) + 1
         else:
             return -1
 
@@ -227,7 +227,7 @@ class Time:
             'September', 'October', 'November', 'December'
         ]
 
-        return months[value]
+        return months[value-1]
 
     @classmethod
     def date_str(cls, value: int) -> str:
