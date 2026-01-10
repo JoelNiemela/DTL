@@ -12,16 +12,20 @@ class File:
         for segment in segments:
             self.segments[segment.time].append(segment)
 
-    def find(self, description: str, ongoing: bool|None = None, with_parent: bool = False) -> (
-             list[Segment]|list[(Segment, (Segment|File))]):
-        finds = []
+    def find(
+        self,
+        description: str,
+        ongoing: bool | None = None,
+        with_parent: bool = False,
+    ) -> list[Segment] | list[tuple[Segment, Segment | File]]:
+        finds: list = []
         for sub_time in self.segments.keys():
             for segment in self.segments[sub_time]:
                 segment.find(description, finds, ongoing=ongoing, with_parent=with_parent, parent_ref=self)
 
         return finds
 
-    def insert_segment(self, segment: Segment):
+    def insert_segment(self, segment: Segment) -> bool:
         if not self.header_time.contains(segment.time):
             return False
 
@@ -33,17 +37,17 @@ class File:
         self.segments[segment.time].append(segment)
         return True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'File(' + str(self.header_time) + ', ' + str(self.segments) + ')'
 
-    def format(self):
-        str = ''
+    def format(self) -> str:
+        fstr = ''
         if self.header_time.year is not None:
-            str += f'for {self.header_time.format(Time({}))}:\n\n'
-        str += ''.join([segment.format(self.header_time) for segment in reduce(concat, self.segments.values(), [])])
-        return str
+            fstr += f'for {self.header_time.format(Time({}))}:\n\n'
+        fstr += ''.join([segment.format(self.header_time) for segment in reduce(concat, self.segments.values(), [])])
+        return fstr
 
-    def validate(self, header_time: Time):
+    def validate(self, header_time: Time) -> None:
         self.segments = defaultdict(list, {k: reduce(lambda acc, s: s.merge_into(acc), v, {'tagged': [], 'merged': Segment(k, None, [], [], False)}) for k, v in self.segments.items()})
 
         def filter_empty(v):
@@ -61,18 +65,25 @@ class File:
                 segment.validate(header_time)
 
 class Segment:
-    def __init__(self, time: Time, description: str, segments: list[Segment]=[], commands: list[Cmd]=[], ongoing: bool=False) -> None:
+    def __init__(
+        self,
+        time: Time,
+        description: str,
+        segments: list[Segment] = [],
+        commands: list[Cmd] = [],
+        ongoing: bool = False,
+    ) -> None:
         self.time = time
         self.description = description
 
-        self.segments = defaultdict(list)
+        self.segments: defaultdict[Time, list[Segment]] = defaultdict(list)
         for segment in segments:
             self.segments[segment.time].append(segment)
 
         self.commands = commands
         self.ongoing = ongoing
 
-    def find(self, description: str, finds, ongoing: bool|None = None, with_parent: bool = False, parent_ref = None) -> None:
+    def find(self, description: str, finds, ongoing: bool | None = None, with_parent: bool = False, parent_ref = None) -> None:
         if description == self.description:
             if ongoing == self.ongoing or ongoing is None:
                 if with_parent:
@@ -84,15 +95,16 @@ class Segment:
             for segment in self.segments[sub_time]:
                 segment.find(description, finds, ongoing=ongoing, with_parent=with_parent, parent_ref=self)
 
-    def create_entry(self, time: Time, description: str, ongoing: bool=False) -> bool:
+    def create_entry(self, time: Time, description: str, ongoing: bool = False) -> bool:
         if not self.time.contains(time):
             return False
 
-        for segment in self.segments.items():
-            if segment.create_entry(time, description, ongoing=ongoing):
-                return True
+        for sub_time in self.segments.keys():
+            for seg in self.segments[sub_time]:
+                if seg.create_entry(time, description, ongoing=ongoing):
+                    return True
 
-        segment = Segment(time, description, [], [], ongoing)
+        segment: Segment = Segment(time, description, [], [], ongoing)
 
         self.segments[segment.time].append(segment)
         return True
@@ -122,16 +134,16 @@ class Segment:
         return segments
 
     def format(self, scope_time: Time, tab: int = 0) -> str:
-        str = '\t' * tab
-        str += f'@{self.time.format(scope_time)}'
+        fstr = '\t' * tab
+        fstr += f'@{self.time.format(scope_time)}'
         if self.ongoing:
-            str += '...'
+            fstr += '...'
         if self.description != None:
-            str += f' [{self.description}]'
-        str += '\n'
-        str += ''.join([cmd.format(tab+1)  for cmd  in self.commands])
-        str += ''.join([segment.format(self.time, tab+1) for segment in reduce(concat, self.segments.values(), [])])
-        return str
+            fstr += f' [{self.description}]'
+        fstr += '\n'
+        fstr += ''.join([cmd.format(tab+1)  for cmd  in self.commands])
+        fstr += ''.join([segment.format(self.time, tab+1) for segment in reduce(concat, self.segments.values(), [])])
+        return fstr
 
     def validate(self, scope_time: Time) -> None:
         self.segments = defaultdict(list, {k: reduce(lambda acc, s: s.merge_into(acc), v, {'tagged': [], 'merged': Segment(k, None, [], [], False)}) for k, v in self.segments.items()})
@@ -273,11 +285,11 @@ class Time:
     def __hash__(self):
         return hash(str((self.year, self.month, self.date, self.time)))
 
-    def __eq__(self, other: Time) -> bool:
-        return self.year == other.year and\
-            self.month == other.month and\
-            self.date == other.date and\
-            self.time == other.time
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Time):
+            return NotImplemented
+
+        return (self.year, self.month, self.date, self.time) == (other.year, other.month, other.date, other.time)
 
     def __lt__(self, other: Time) -> bool:
         if self.year is None: return True
@@ -343,7 +355,7 @@ class Time:
         return ' '.join(parts)
 
 class Cmd:
-    def __init__(self, command: str, description: str, options: list):
+    def __init__(self, command: str, description: str, options: list[Option]) -> None:
         self.command = command
         self.description = description
         self.options = options
@@ -358,16 +370,16 @@ class Cmd:
         return 'Cmd(' + self.command + ', ' + self.description + ', ' + str(self.options) + ')'
 
     def format(self, tab: int = 0) -> str:
-        str = '\t' * tab
-        str += f'{self.command} [{self.description}]\n'
-        str += ''.join([option.format(tab+1) for option in self.options])
-        return str
+        fstr = '\t' * tab
+        fstr += f'{self.command} [{self.description}]\n'
+        fstr += ''.join([option.format(tab+1) for option in self.options])
+        return fstr
 
     def validate(self, time: Time) -> None:
         return None
 
 class Option:
-    def __init__(self, name: str, value: str):
+    def __init__(self, name: str, value: str) -> None:
         self.name = name
         self.value = value
 
@@ -375,6 +387,6 @@ class Option:
         return 'Option(' + self.name + ', ' + self.value + ')'
 
     def format(self, tab: int = 0) -> str:
-        str = '\t' * tab
-        str += f'{self.name} {self.value}\n'
-        return str
+        fstr = '\t' * tab
+        fstr += f'{self.name} {self.value}\n'
+        return fstr

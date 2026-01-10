@@ -3,9 +3,9 @@
 import sys
 import os
 
-from dtl.parse import Parser
-from dtl import ast
+from dtl.ast import File, Segment, Time
 from dtl.config import load_config
+from dtl.parse import Parser
 
 from collections import defaultdict
 
@@ -22,10 +22,12 @@ def assert_argc(args: list[str], count: int) -> None:
             print(f'Error: expected {count} arguments')
         exit(1)
 
-def require(name: str, value) -> None:
+def required(name: str, value: str | None) -> str:
     if value is None:
         print(f'Error: argument "{name}" is required')
         exit(1)
+
+    return value
 
 def absolute_path(file_path: str) -> str:
     if len(file_path) > 0 and file_path[0] == '@':
@@ -33,9 +35,7 @@ def absolute_path(file_path: str) -> str:
 
     return file_path
 
-def parse_file(file_path: str|None) -> ast.File:
-    require('file', file_path)
-
+def parse_file(file_path: str) -> File:
     parser = Parser(debug = False)
 
     try:
@@ -47,28 +47,20 @@ def parse_file(file_path: str|None) -> ast.File:
 
     return tree
 
-def write_file(file_path: str|None, tree: ast.File) -> None:
-    require('file', file_path)
-
+def write_file(file_path: str, tree: File) -> None:
     with open(absolute_path(file_path), 'w') as file:
         file.write(tree.format())
 
-def parse_cmd(file_path: str|None, args: list[str]) -> None:
-    require('file', file_path)
-
+def parse_cmd(file_path: str) -> None:
     print(parse_file(file_path))
     print(parse_file(file_path).format())
 
-def format_cmd(file_path: str|None, args: list[str]) -> None:
-    require('file', file_path)
-
-    tree = parse_file(file_path)
+def format_cmd(file_path: str) -> None:
+    tree: File = parse_file(file_path)
 
     write_file(file_path, tree)
 
-def find_cmd(file_path: str|None, args: list[str]) -> None:
-    require('file', file_path)
-
+def find_cmd(file_path: str, args: list[str]) -> None:
     assert_argc(args, 1)
 
     if args[0] == 'ongoing':
@@ -81,34 +73,22 @@ def find_cmd(file_path: str|None, args: list[str]) -> None:
         ongoing = None
         description = args[0]
 
-    tree = parse_file(file_path)
+    tree: File = parse_file(file_path)
 
-    print(''.join([f.format(ast.Time({})) for f in tree.find(description, ongoing=ongoing)]))
+    print(''.join([f.format(Time({})) for f in tree.find(description, ongoing=ongoing)]))
 
-def add_cmd(file_path: str|None, args: list[str]) -> None:
-    require('file', file_path)
+def add_cmd(file_path: str, description: str) -> None:
+    tree: File = parse_file(file_path)
 
-    assert_argc(args, 1)
-
-    description = args[0]
-
-    tree = parse_file(file_path)
-
-    print(ast.Time.now())
-    tree.insert_segment(ast.Segment(ast.Time.now(), description))
+    print(Time.now())
+    tree.insert_segment(Segment(Time.now(), description))
 
     print(tree.format())
 
     write_file(file_path, tree)
 
-def begin_cmd(file_path: str|None, args: list[str]) -> None:
-    require('file', file_path)
-
-    assert_argc(args, 1)
-
-    description = args[0]
-
-    tree = parse_file(file_path)
+def begin_cmd(file_path: str, description: str) -> None:
+    tree: File = parse_file(file_path)
 
     already_ongoing = tree.find(description, ongoing = True)
     if len(already_ongoing) > 0:
@@ -118,28 +98,22 @@ def begin_cmd(file_path: str|None, args: list[str]) -> None:
             print(f'There are already ongoing entries with the name "{description}":')
 
         print()
-        print(''.join(['\t' + f.format(ast.Time({})) for f in already_ongoing]))
+        print(''.join(['\t' + f.format(Time({})) for f in already_ongoing]))
         print('Are you sure you want to create another entry?')
         ans = input('(y/n): ')
         if ans != 'y':
             exit(0)
 
-    tree.insert_segment(ast.Segment(ast.Time.now(), description, ongoing = True))
+    tree.insert_segment(Segment(Time.now(), description, ongoing = True))
 
     print(tree.format())
 
     write_file(file_path, tree)
 
-def end_cmd(file_path: str|None, args: list[str]) -> None:
-    require('file', file_path)
+def end_cmd(file_path: str, description: str) -> None:
+    tree: File = parse_file(file_path)
 
-    assert_argc(args, 1)
-
-    description = args[0]
-
-    tree = parse_file(file_path)
-
-    finds = tree.find(description, ongoing = True, with_parent = True)
+    finds: list[Segment] | list[tuple[Segment, Segment | File]] = tree.find(description, ongoing = True, with_parent = True)
 
     if len(finds) == 0:
         print(f'No ongoing entry with the name "{description}"')
@@ -147,7 +121,7 @@ def end_cmd(file_path: str|None, args: list[str]) -> None:
     elif len(finds) > 1:
         print(f'There are multiple ongoing entries with the name "{description}":')
         print()
-        print(''.join(['\t' + f[0].format(ast.Time({})) for f in finds]))
+        print(''.join(['\t' + f[0].format(Time({})) for f in finds]))
         while True:
             print(f'Which one would you like to end?')
             index = input(f'[1-{len(finds)}]: ')
@@ -162,7 +136,7 @@ def end_cmd(file_path: str|None, args: list[str]) -> None:
     else:
         print(f'Currently ongoing entry "{description}":')
         print()
-        print(''.join(['\t' + f[0].format(ast.Time({})) for f in finds]))
+        print(''.join(['\t' + f[0].format(Time({})) for f in finds]))
         print('Are you sure you want to end this entry?')
         ans = input('(y/n): ')
         if ans != 'y':
@@ -180,15 +154,13 @@ def end_cmd(file_path: str|None, args: list[str]) -> None:
 
     segment.ongoing = False
     segment.time.period = True
-    segment.time.end = ast.Time.now()
+    segment.time.end = Time.now()
 
     tree.insert_segment(segment)
 
     write_file(file_path, tree)
 
-def create_cmd(file_path: str|None, args: list[str]) -> None:
-    require('file', file_path)
-
+def create_cmd(file_path: str) -> None:
     real_path = absolute_path(file_path)
 
     if os.path.exists(real_path):
@@ -198,7 +170,7 @@ def create_cmd(file_path: str|None, args: list[str]) -> None:
         with open(real_path, 'w', encoding='utf-8'):
             pass
 
-def help_cmd(file: str|None, cmd: str|None, args: list[str]) -> None:
+def help_cmd(cmd: str | None) -> None:
     match cmd:
         case 'parse':
             print('dtl [file] parse\n')
@@ -250,16 +222,15 @@ def help_cmd(file: str|None, cmd: str|None, args: list[str]) -> None:
             print('\t--help')
             print('\t\tShow this message.')
             print('\t\tIf a command is specified: show more information about that command.\n')
-
         case _:
             print(f'Unknown command "{cmd}". Type "dtl --help" for a list of commands.')
 
 def main() -> None:
-    flags    = [flag.lstrip('-') for flag in sys.argv[1:] if flag[0] == '-']
-    commands = [cmd              for cmd  in sys.argv[1:] if  cmd[0] != '-']
+    flags:    list[str] = [flag.lstrip('-') for flag in sys.argv[1:] if flag[0] == '-']
+    commands: list[str] = [cmd              for cmd  in sys.argv[1:] if  cmd[0] != '-']
 
-    cmd = None
-    file = None
+    cmd:  str | None = None
+    file: str | None = None
     match len(commands):
         case 0:
             args = commands
@@ -269,31 +240,38 @@ def main() -> None:
             file, cmd, *args = commands
 
     if 'help' in flags or 'h' in flags:
-        help_cmd(file, cmd, args)
+        help_cmd(cmd)
         exit(0)
 
     if 'version' in flags:
         print(f'DTL {VERSION}')
         exit(0)
 
-    match cmd:
-        case 'parse':
-            parse_cmd(file, args)
-        case 'format':
-            format_cmd(file, args)
-        case 'find':
+    if cmd is None:
+        help_cmd(None)
+        exit(0)
+
+    if file is None:
+        help_cmd(cmd)
+        exit(0)
+
+    match (cmd, args):
+        case 'parse', args:
+            parse_cmd(file)
+        case 'format', args:
+            format_cmd(file)
+        case 'find', args:
             find_cmd(file, args)
-        case 'add':
-            add_cmd(file, args)
-        case 'begin':
-            begin_cmd(file, args)
-        case 'end':
-            end_cmd(file, args)
-        case 'create':
-            create_cmd(file, args)
+        case 'add', [description]:
+            add_cmd(file, description)
+        case 'begin', [description]:
+            begin_cmd(file, description)
+        case 'end', [description]:
+            end_cmd(file, description)
+        case 'create', args:
+            create_cmd(file)
         case _:
-            help_cmd(file, cmd, args)
+            help_cmd(cmd)
 
 if __name__ == "__main__":
     main()
-
