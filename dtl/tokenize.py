@@ -8,12 +8,12 @@ class Token:
         self.value = value
 
 class Lexer:
-    def __init__(self, debug: str = False) -> None:
-        self.tokens = deque()
+    def __init__(self, debug: bool = False) -> None:
+        self.tokens: deque[Token] = deque()
         self.debug = debug
 
     def tokenize(self, src: str) -> None:
-        types = {
+        token_patterns: dict[str, str] = {
             'AT'       : r'@',
             'YEAR'     : r'\d{4}',
             'MONTH'    : r'January|February|March|April|May|June|July|August|September|October|November|December',
@@ -34,8 +34,7 @@ class Lexer:
             'ERROR'    : r'.',
         }
 
-        for tok_type, pattern in types.items():
-            types[tok_type] = re.compile(pattern)
+        types: dict[str, re.Pattern[str]] = { tok_type: re.compile(pattern) for tok_type, pattern in token_patterns.items() }
 
         self.tokens = deque()
 
@@ -107,7 +106,7 @@ class Lexer:
         else:
             return Token('EOF')
 
-    def assert_token(self, tok_t: str) -> Token|None:
+    def assert_token(self, tok_t: str | list[str]) -> Token|None:
         if not isinstance(tok_t, list):
             tok_t = [tok_t]
 
