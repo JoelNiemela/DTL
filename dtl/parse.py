@@ -1,12 +1,8 @@
 from dtl.ast import Cmd, File, Option, Segment, Time
-from dtl.tokenize import Lexer, Token
+from dtl.tokenize import Lexer, ParseError, Token
 
 from functools import partial
 from typing import Callable
-
-
-class ParseError(Exception):
-    pass
 
 
 class Parser:

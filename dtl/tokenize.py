@@ -1,8 +1,9 @@
 import re
 
-from dtl.parse import ParseError
-
 from collections import deque
+
+class ParseError(Exception):
+    pass
 
 class Token:
     def __init__(self, tok_type: str, value: str | None = None) -> None:
