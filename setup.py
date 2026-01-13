@@ -5,7 +5,7 @@ with open('README.md', 'r') as file:
 
 setup(
     name='DTL',
-    version='0.1.9',
+    version='0.1.10',
     author='Joel Niemela',
     author_email='joel@niemela.se',
     long_description=long_description,
